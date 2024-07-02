@@ -25,11 +25,32 @@ class _SignUpScreenState extends State<SignUpScreen> {
               Container(
                 child: Image.asset('assets/images/onboarding_screen.png'),
               ),
-              SizedBox(height: 20),
-              TextBox(text: 'Sign Up with Email'),
-              SizedBox(height: 20),
-              TextBox(text: 'Password'),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
+              TextBox(
+                text: 'Enter your full name',
+                icon: const Icon(Icons.person_2),
+                keyboardType: TextInputType.name,
+              ),
+              const SizedBox(height: 20),
+              TextBox(
+                text: 'Enter your phone number',
+                icon: const Icon(Icons.local_phone_sharp),
+                keyboardType: TextInputType.phone,
+              ),
+              const SizedBox(height: 20),
+              TextBox(
+                text: 'Enter your email',
+                icon: const Icon(Icons.email_outlined),
+                keyboardType: TextInputType.emailAddress,
+              ),
+              const SizedBox(height: 20),
+              TextBox(
+                text: 'Enter your Password',
+                icon: const Icon(Icons.lock),
+                keyboardType: TextInputType.none,
+                obscureText: true,
+              ),
+              const SizedBox(height: 20),
               Divider(
                 thickness: 1,
                 color: Colors.black,
