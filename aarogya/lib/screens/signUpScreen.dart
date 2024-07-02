@@ -1,4 +1,6 @@
 import 'package:aarogya/widgets/TextBox.dart';
+import 'package:aarogya/widgets/customButton.dart';
+import 'package:aarogya/widgets/customButtonForGoogle.dart';
 import 'package:flutter/material.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -23,6 +25,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               Container(
+                height: 200,
                 child: Image.asset('assets/images/onboarding_screen.png'),
               ),
               const SizedBox(height: 20),
@@ -51,10 +54,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 obscureText: true,
               ),
               const SizedBox(height: 20),
-              Divider(
-                thickness: 1,
-                color: Colors.black,
-              ), // Adjusted height for better spacing
+              CustomButton(text: 'Create Account'),
+              const SizedBox(height: 15),
+              Center(
+                child: Text(
+                  "OR",
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              CustomButtonForGoogle(),
             ],
           ),
         ),
