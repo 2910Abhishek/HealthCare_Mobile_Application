@@ -12,7 +12,20 @@
           "package_name": "com.example.aarogya"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "394843150811-bmjhg1mhau7946imrjask4or04djqfre.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.aarogya",
+            "certificate_hash": "218e16353908422bab4499c03095e7031f50ad37"
+          }
+        },
+        {
+          "client_id": "394843150811-7int1dvidhvd7kh26qseqjsdmpnijdij.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDoOLHJL_b9UGjY3IC-1C5-swFZNHWNInk"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "394843150811-7int1dvidhvd7kh26qseqjsdmpnijdij.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "394843150811-em357a73gul3es2pcalaigqp91sqscf2.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.aarogya"
+              }
+            }
+          ]
         }
       }
     }
