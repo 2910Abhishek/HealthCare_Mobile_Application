@@ -21,7 +21,7 @@ class TextBox extends StatelessWidget {
           width: 1.5,
           color: Colors.grey.shade400, // Border color
         ),
-        borderRadius: BorderRadius.circular(40), // Rounded corners
+        borderRadius: BorderRadius.circular(30), // Rounded corners
       ),
       child: TextField(
         keyboardType: keyboardType,
