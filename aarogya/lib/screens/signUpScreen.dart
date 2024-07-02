@@ -85,7 +85,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   Center(
                     child: CustomButtonForGoogle(),
                   ),
-                  SizedBox(height: 20),
                 ],
               ),
             ),
@@ -107,9 +106,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
               ),
             ),
-            SizedBox(
-              height: 10,
-            )
           ],
         ),
       ),
