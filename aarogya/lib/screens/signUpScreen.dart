@@ -65,6 +65,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                 ),
               ),
+              const SizedBox(height: 15),
               CustomButtonForGoogle(),
             ],
           ),
