@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "394843150811",
+    "project_id": "aarogya-bf729",
+    "storage_bucket": "aarogya-bf729.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:394843150811:android:3b306f7daa2ca0ab12affe",
+        "android_client_info": {
+          "package_name": "com.example.aarogya"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDoOLHJL_b9UGjY3IC-1C5-swFZNHWNInk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
