@@ -34,18 +34,16 @@ class _LogInScreenState extends State<LogInScreen> {
     }
   }
 
-  Future<void> _signInWithGoogle() async {
-    String? uid = await _authService.signInWithGoogle();
-
-    if (uid != null) {
-      // Navigate to home screen or show success message
-      print("Signed in with Google successfully");
-      // Example: Navigate to home screen after successful sign-in
-      // Navigator.pushReplacementNamed(context, '/home');
-    } else {
-      // Show error message to the user
-      print("Failed to sign in with Google");
-    }
+  Future<void> signInWithGoogle() async {
+    // if (uid != null) {
+    //   // Navigate to home screen or show success message
+    //   print("Signed in with Google successfully");
+    //   // Example: Navigate to home screen after successful sign-in
+    //   // Navigator.pushReplacementNamed(context, '/home');
+    // } else {
+    //   // Show error message to the user
+    //   print("Failed to sign in with Google");
+    // }
   }
 
   @override
@@ -117,7 +115,7 @@ class _LogInScreenState extends State<LogInScreen> {
                       SizedBox(height: 15),
                       Center(
                         child: CustomButtonForGoogle(
-                          onPressed: _signInWithGoogle,
+                          onPressed: () {},
                         ),
                       ),
                     ],

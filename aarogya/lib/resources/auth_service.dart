@@ -5,7 +5,8 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-  Future<String?> signUpWithEmailAndPassword(String email, String password) async {
+  Future<String?> signUpWithEmailAndPassword(
+      String email, String password) async {
     try {
       UserCredential result = await _auth.createUserWithEmailAndPassword(
         email: email,
@@ -18,7 +19,8 @@ class AuthService {
     }
   }
 
-  Future<String?> signInWithEmailAndPassword(String email, String password) async {
+  Future<String?> signInWithEmailAndPassword(
+      String email, String password) async {
     try {
       UserCredential result = await _auth.signInWithEmailAndPassword(
         email: email,
@@ -31,25 +33,29 @@ class AuthService {
     }
   }
 
-  Future<String?> signInWithGoogle() async {
+  Future<bool> signInWithGoogle() async {
+    bool res = false;
+
     try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) {
-        return null; // The user canceled the sign-in
-      }
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
 
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication? googleAuth =
+          await googleUser?.authentication;
 
-      final AuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth?.accessToken,
+        idToken: googleAuth?.idToken,
       );
 
-      UserCredential result = await _auth.signInWithCredential(credential);
-      return result.user?.uid;
-    } catch (e) {
-      print("Failed to sign in with Google: $e");
-      return null;
+      UserCredential userCredential =
+          await _auth.signInWithCredential(credential);
+
+      User? user = userCredential.user;
+
+      res = true;
+    } on FirebaseAuthException catch (e) {
+      res = false;
     }
+    return res;
   }
 }

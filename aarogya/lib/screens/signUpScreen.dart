@@ -1,6 +1,4 @@
-
-
-
+import 'package:aarogya/resources/auth_methods.dart';
 import 'package:flutter/material.dart';
 import 'package:aarogya/widgets/TextBox.dart';
 import 'package:aarogya/widgets/customButton.dart';
@@ -22,6 +20,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  final AuthMethods _authMethods = AuthMethods();
+
   Future<void> _signUpWithEmailAndPassword() async {
     String? uid = await _authService.signUpWithEmailAndPassword(
       _emailController.text.trim(),
@@ -36,20 +36,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     } else {
       // Show error message to the user
       print("Failed to create account");
-    }
-  }
-
-  Future<void> _signInWithGoogle() async {
-    String? uid = await _authService.signInWithGoogle();
-
-    if (uid != null) {
-      // Navigate to home screen or show success message
-      print("Signed in with Google successfully");
-      // Example: Navigate to home screen after successful sign-in
-      // Navigator.pushReplacementNamed(context, '/home');
-    } else {
-      // Show error message to the user
-      print("Failed to sign in with Google");
     }
   }
 
@@ -136,7 +122,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       SizedBox(height: 15),
                       Center(
                         child: CustomButtonForGoogle(
-                          onPressed: _signInWithGoogle,
+                          onPressed: () async {
+                            bool res =
+                                await _authMethods.signInWithGoogle(context);
+                            if (res) {
+                              Navigator.pushNamed(context, '/login');
+                            }
+                          },
                         ),
                       ),
                     ],
@@ -148,8 +140,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
               color: Colors.white,
               padding: EdgeInsets.symmetric(vertical: 15),
               child: GestureDetector(
-                onTap: () {
-                  Navigator.pushNamed(context, '/login');
+                onTap: () async {
+                  bool res = await _authMethods.signInWithGoogle(context);
+                  if (res) {
+                    Navigator.pushNamed(context, '/login');
+                  }
                 },
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
