@@ -1,6 +1,3 @@
-
-
-
 import 'package:flutter/material.dart';
 import 'package:aarogya/widgets/TextBox.dart';
 import 'package:aarogya/widgets/customButton.dart';
@@ -166,5 +163,3 @@ class _LogInScreenState extends State<LogInScreen> {
     );
   }
 }
-
-
