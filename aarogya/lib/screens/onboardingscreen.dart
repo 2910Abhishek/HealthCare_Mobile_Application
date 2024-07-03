@@ -79,6 +79,7 @@ class OnboardingPageOne extends StatelessWidget {
                 "Easy to manage your health records from mobile application",
                 style: TextStyle(fontSize: 16),
               ),
+              Image.asset('assets/images/onboarding_screen.png'),
               SizedBox(
                 height: 40,
               ),
@@ -118,6 +119,7 @@ class OnboardingPageTwo extends StatelessWidget {
                   "Easy to manage your health records from mobile application",
                   style: TextStyle(fontSize: 16),
                 ),
+                Image.asset('assets/images/onboarding_screen_2.png'),
                 SizedBox(height: 40),
                 CustomButton(
                   text: "Next",
@@ -152,6 +154,7 @@ class OnboardingPageThree extends StatelessWidget {
                   "Easy Appointment Booking, AI Healthcare Chatbot, Video Consultation",
                   style: TextStyle(fontSize: 16),
                 ),
+                Image.asset('assets/images/onboarding_screen_3.png'),
                 SizedBox(height: 40),
                 CustomButton(
                   text: "Next",
