@@ -66,7 +66,7 @@ class _LogInScreenState extends State<LogInScreen> {
                     children: [
                       InkWell(
                         onTap: () {
-                          // Handle onTap for your icon button
+                          Navigator.pushNamed(context, '/signup');
                         },
                         child: Icon(
                           Icons.arrow_back_sharp,
