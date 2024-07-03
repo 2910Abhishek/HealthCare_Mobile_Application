@@ -1,16 +1,56 @@
+
+
+
 import 'package:flutter/material.dart';
 import 'package:aarogya/widgets/TextBox.dart';
 import 'package:aarogya/widgets/customButton.dart';
 import 'package:aarogya/widgets/customButtonForGoogle.dart';
+import 'package:aarogya/resources/auth_service.dart'; // Import AuthService
 
 class LogInScreen extends StatefulWidget {
-  const LogInScreen({super.key});
+  const LogInScreen({Key? key});
 
   @override
   State<LogInScreen> createState() => _LogInScreenState();
 }
 
 class _LogInScreenState extends State<LogInScreen> {
+  final AuthService _authService = AuthService(); // Instance of AuthService
+
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  Future<void> _signInWithEmailAndPassword() async {
+    String? uid = await _authService.signInWithEmailAndPassword(
+      _emailController.text.trim(),
+      _passwordController.text.trim(),
+    );
+
+    if (uid != null) {
+      // Navigate to home screen or show success message
+      print("Logged in successfully");
+      // Example: Navigate to home screen after successful login
+      // Navigator.pushReplacementNamed(context, '/home');
+    } else {
+      // Show error message to the user
+      print("Failed to log in");
+    }
+  }
+
+  Future<void> _signInWithGoogle() async {
+    String? uid = await _authService.signInWithGoogle();
+
+    if (uid != null) {
+      // Navigate to home screen or show success message
+      print("Signed in with Google successfully");
+      // Example: Navigate to home screen after successful sign-in
+      // Navigator.pushReplacementNamed(context, '/home');
+    } else {
+      // Show error message to the user
+      print("Failed to sign in with Google");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -52,6 +92,7 @@ class _LogInScreenState extends State<LogInScreen> {
                         text: 'Enter your email',
                         icon: Icon(Icons.email),
                         keyboardType: TextInputType.emailAddress,
+                        controller: _emailController,
                       ),
                       SizedBox(height: 20),
                       TextBox(
@@ -59,9 +100,13 @@ class _LogInScreenState extends State<LogInScreen> {
                         icon: Icon(Icons.lock),
                         keyboardType: TextInputType.text,
                         obscureText: true,
+                        controller: _passwordController,
                       ),
                       SizedBox(height: 20),
-                      CustomButton(text: 'Log In'),
+                      CustomButton(
+                        text: 'Log In',
+                        onPressed: _signInWithEmailAndPassword,
+                      ),
                       SizedBox(height: 15),
                       Center(
                         child: Text(
@@ -74,7 +119,9 @@ class _LogInScreenState extends State<LogInScreen> {
                       ),
                       SizedBox(height: 15),
                       Center(
-                        child: CustomButtonForGoogle(),
+                        child: CustomButtonForGoogle(
+                          onPressed: _signInWithGoogle,
+                        ),
                       ),
                     ],
                   ),
@@ -119,3 +166,5 @@ class _LogInScreenState extends State<LogInScreen> {
     );
   }
 }
+
+

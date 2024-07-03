@@ -1,16 +1,58 @@
+
+
+
 import 'package:flutter/material.dart';
 import 'package:aarogya/widgets/TextBox.dart';
 import 'package:aarogya/widgets/customButton.dart';
 import 'package:aarogya/widgets/customButtonForGoogle.dart';
+import 'package:aarogya/resources/auth_service.dart'; // Import AuthService
 
 class SignUpScreen extends StatefulWidget {
-  const SignUpScreen({super.key});
+  const SignUpScreen({Key? key});
 
   @override
   State<SignUpScreen> createState() => _SignUpScreenState();
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
+  final AuthService _authService = AuthService(); // Instance of AuthService
+
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  Future<void> _signUpWithEmailAndPassword() async {
+    String? uid = await _authService.signUpWithEmailAndPassword(
+      _emailController.text.trim(),
+      _passwordController.text.trim(),
+    );
+
+    if (uid != null) {
+      // Navigate to home screen or show success message
+      print("Account created successfully");
+      // Example: Navigate to home screen after successful sign-up
+      // Navigator.pushReplacementNamed(context, '/home');
+    } else {
+      // Show error message to the user
+      print("Failed to create account");
+    }
+  }
+
+  Future<void> _signInWithGoogle() async {
+    String? uid = await _authService.signInWithGoogle();
+
+    if (uid != null) {
+      // Navigate to home screen or show success message
+      print("Signed in with Google successfully");
+      // Example: Navigate to home screen after successful sign-in
+      // Navigator.pushReplacementNamed(context, '/home');
+    } else {
+      // Show error message to the user
+      print("Failed to sign in with Google");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -52,18 +94,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         text: 'Enter your full name',
                         icon: Icon(Icons.person),
                         keyboardType: TextInputType.name,
+                        controller: _nameController,
                       ),
                       SizedBox(height: 20),
                       TextBox(
                         text: 'Enter your phone number',
                         icon: Icon(Icons.phone),
                         keyboardType: TextInputType.phone,
+                        controller: _phoneController,
                       ),
                       SizedBox(height: 20),
                       TextBox(
                         text: 'Enter your email',
                         icon: Icon(Icons.email),
                         keyboardType: TextInputType.emailAddress,
+                        controller: _emailController,
                       ),
                       SizedBox(height: 20),
                       TextBox(
@@ -71,9 +116,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         icon: Icon(Icons.lock),
                         keyboardType: TextInputType.text,
                         obscureText: true,
+                        controller: _passwordController,
                       ),
                       SizedBox(height: 20),
-                      CustomButton(text: 'Create Account'),
+                      CustomButton(
+                        text: 'Create Account',
+                        onPressed: _signUpWithEmailAndPassword,
+                      ),
                       SizedBox(height: 15),
                       Center(
                         child: Text(
@@ -86,7 +135,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                       SizedBox(height: 15),
                       Center(
-                        child: CustomButtonForGoogle(),
+                        child: CustomButtonForGoogle(
+                          onPressed: _signInWithGoogle,
+                        ),
                       ),
                     ],
                   ),

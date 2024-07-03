@@ -1,15 +1,22 @@
+
+
+
+
+
 import 'package:aarogya/screens/loginscreen.dart';
 import 'package:aarogya/screens/signUpScreen.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(); // Initialize Firebase app
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -23,7 +30,8 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LogInScreen(),
         '/signup': (context) => const SignUpScreen(),
       },
-      home: SignUpScreen(),
+      initialRoute: '/signup', // Set initial route to signup screen
     );
   }
 }
+

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
 class CustomButton extends StatelessWidget {
-  const CustomButton({super.key, required this.text});
+  const CustomButton({Key? key, required this.text, required this.onPressed});
 
   final String text;
+  final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -14,18 +15,16 @@ class CustomButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(40),
       ),
       child: ElevatedButton(
-        onPressed: () {},
+        onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor:
-              const Color.fromARGB(255, 175, 96, 66), // Light brownish color
+          backgroundColor: const Color.fromARGB(255, 175, 96, 66), // Light brownish color
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(40),
           ),
         ),
         child: Text(
           text,
-          style:
-              const TextStyle(color: Colors.white, fontSize: 15), // White text
+          style: const TextStyle(color: Colors.white, fontSize: 15), // White text
         ),
       ),
     );

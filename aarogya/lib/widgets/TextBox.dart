@@ -1,16 +1,22 @@
+
+
 import 'package:flutter/material.dart';
 
 class TextBox extends StatelessWidget {
-  const TextBox(
-      {super.key,
-      required this.text,
-      required this.icon,
-      required this.keyboardType,
-      this.obscureText = false});
+  const TextBox({
+    Key? key,
+    required this.text,
+    required this.icon,
+    required this.keyboardType,
+    this.obscureText = false,
+    this.controller,
+  }) : super(key: key);
+
   final Icon icon;
-  final text;
+  final String text;
   final TextInputType keyboardType;
   final bool obscureText;
+  final TextEditingController? controller;
 
   @override
   Widget build(BuildContext context) {
@@ -24,6 +30,7 @@ class TextBox extends StatelessWidget {
         borderRadius: BorderRadius.circular(30), // Rounded corners
       ),
       child: TextField(
+        controller: controller,
         keyboardType: keyboardType,
         obscureText: obscureText,
         decoration: InputDecoration(
