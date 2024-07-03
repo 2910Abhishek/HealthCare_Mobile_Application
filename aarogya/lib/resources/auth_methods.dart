@@ -34,6 +34,23 @@ class AuthMethods {
     return res;
   }
 
+  Future<bool> signInWithEmailAndPassword(
+      String email, String password, BuildContext context) async {
+    bool res = false;
+
+    try {
+      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+          email: email, password: password);
+
+      res = true;
+    } on FirebaseAuthException catch (e) {
+      res = false;
+      print("Error Signing in with email and password:$e");
+    }
+
+    return res;
+  }
+
   void signOut() async {
     try {
       _auth.signOut();

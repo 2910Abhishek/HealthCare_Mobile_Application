@@ -1,3 +1,4 @@
+import 'package:aarogya/screens/homescreen.dart';
 import 'package:aarogya/screens/loginscreen.dart';
 import 'package:aarogya/screens/onboardingscreen.dart';
 import 'package:aarogya/screens/signUpScreen.dart';
@@ -25,6 +26,7 @@ class MyApp extends StatelessWidget {
         '/': (context) => OnBoardingScreen(),
         '/login': (context) => const LogInScreen(),
         '/signup': (context) => const SignUpScreen(),
+        '/home': (context) => HomeScreen(),
       },
       initialRoute: '/', // Set initial route to signup screen
     );

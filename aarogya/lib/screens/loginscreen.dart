@@ -1,3 +1,5 @@
+import 'package:aarogya/resources/auth_methods.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:aarogya/widgets/TextBox.dart';
 import 'package:aarogya/widgets/customButton.dart';
@@ -12,38 +14,39 @@ class LogInScreen extends StatefulWidget {
 }
 
 class _LogInScreenState extends State<LogInScreen> {
-  final AuthService _authService = AuthService(); // Instance of AuthService
+  final AuthMethods _authMethods = AuthMethods();
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   Future<void> _signInWithEmailAndPassword() async {
-    String? uid = await _authService.signInWithEmailAndPassword(
-      _emailController.text.trim(),
-      _passwordController.text.trim(),
-    );
+    String email = _emailController.text.trim();
+    String password = _passwordController.text.trim();
 
-    if (uid != null) {
-      // Navigate to home screen or show success message
-      print("Logged in successfully");
-      // Example: Navigate to home screen after successful login
-      // Navigator.pushReplacementNamed(context, '/home');
+    bool res =
+        await _authMethods.signInWithEmailAndPassword(email, password, context);
+
+    if (res) {
+      // Navigate to home screen or any other screen after successful login
+      Navigator.pushNamed(context, '/home');
     } else {
-      // Show error message to the user
-      print("Failed to log in");
+      // Show error message or handle the failed login scenario
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Login Failed'),
+          content: Text('Invalid email or password. Please try again.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('OK'),
+            ),
+          ],
+        ),
+      );
     }
-  }
-
-  Future<void> signInWithGoogle() async {
-    // if (uid != null) {
-    //   // Navigate to home screen or show success message
-    //   print("Signed in with Google successfully");
-    //   // Example: Navigate to home screen after successful sign-in
-    //   // Navigator.pushReplacementNamed(context, '/home');
-    // } else {
-    //   // Show error message to the user
-    //   print("Failed to sign in with Google");
-    // }
   }
 
   @override
@@ -115,7 +118,13 @@ class _LogInScreenState extends State<LogInScreen> {
                       SizedBox(height: 15),
                       Center(
                         child: CustomButtonForGoogle(
-                          onPressed: () {},
+                          onPressed: () async {
+                            bool res =
+                                await _authMethods.signInWithGoogle(context);
+                            if (res) {
+                              Navigator.pushNamed(context, '/home');
+                            }
+                          },
                         ),
                       ),
                     ],

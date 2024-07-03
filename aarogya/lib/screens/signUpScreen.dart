@@ -1,4 +1,5 @@
 import 'package:aarogya/resources/auth_methods.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:aarogya/widgets/TextBox.dart';
 import 'package:aarogya/widgets/customButton.dart';
@@ -14,6 +15,7 @@ class SignUpScreen extends StatefulWidget {
 
 class _SignUpScreenState extends State<SignUpScreen> {
   final AuthService _authService = AuthService(); // Instance of AuthService
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
@@ -31,8 +33,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
     if (uid != null) {
       // Navigate to home screen or show success message
       print("Account created successfully");
-      // Example: Navigate to home screen after successful sign-up
-      // Navigator.pushReplacementNamed(context, '/home');
+      _firestore.collection('users').doc(uid).set({
+        'username': _nameController.text.trim(),
+        'phone': _phoneController.text.trim(),
+        'email': _emailController.text.trim(),
+      });
+
+      print("User data added to Firestore successfully");
+
+      Navigator.pushReplacementNamed(context, '/home');
     } else {
       // Show error message to the user
       print("Failed to create account");
@@ -137,7 +146,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
             ),
             Container(
-              color: Colors.white,
               padding: EdgeInsets.symmetric(vertical: 15),
               child: GestureDetector(
                 onTap: () async {
