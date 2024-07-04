@@ -17,14 +17,16 @@ class CustomButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color.fromARGB(255, 175, 96, 66), // Light brownish color
+          backgroundColor:
+              const Color.fromARGB(255, 175, 96, 66), // Light brownish color
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(40),
           ),
         ),
         child: Text(
           text,
-          style: const TextStyle(color: Colors.white, fontSize: 15), // White text
+          style:
+              const TextStyle(color: Colors.white, fontSize: 15), // White text
         ),
       ),
     );

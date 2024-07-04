@@ -1,10 +1,8 @@
-
-
-
 import 'package:flutter/material.dart';
 
 class CustomButtonForGoogle extends StatelessWidget {
-  const CustomButtonForGoogle({Key? key, required this.onPressed}) : super(key: key);
+  const CustomButtonForGoogle({Key? key, required this.onPressed})
+      : super(key: key);
 
   final VoidCallback onPressed;
 
@@ -17,7 +15,8 @@ class CustomButtonForGoogle extends StatelessWidget {
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
           side: BorderSide(
-            color: const Color.fromARGB(255, 175, 96, 66), // Light brownish color
+            color:
+                const Color.fromARGB(255, 175, 96, 66), // Light brownish color
           ),
         ),
         child: Row(
@@ -35,7 +34,8 @@ class CustomButtonForGoogle extends StatelessWidget {
                   "Continue with Google",
                   style: TextStyle(
                     fontSize: 15,
-                    color: const Color.fromARGB(255, 175, 96, 66), // Light brownish color
+                    color: const Color.fromARGB(
+                        255, 175, 96, 66), // Light brownish color
                   ),
                 ),
               ),
