@@ -1,3 +1,4 @@
+import 'package:aarogya/utils/colors.dart';
 import 'package:flutter/material.dart';
 
 class CustomButton extends StatelessWidget {
@@ -17,8 +18,7 @@ class CustomButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor:
-              const Color.fromARGB(255, 175, 96, 66), // Light brownish color
+          backgroundColor: buttonColor, // Light brownish color
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(40),
           ),

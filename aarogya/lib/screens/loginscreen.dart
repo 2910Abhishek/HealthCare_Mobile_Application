@@ -1,3 +1,4 @@
+import 'package:aarogya/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:aarogya/widgets/TextBox.dart';
@@ -131,7 +132,7 @@ class _LogInScreenState extends State<LogInScreen>
                                 child: Icon(
                                   Icons.arrow_back_sharp,
                                   size: 36,
-                                  color: const Color.fromARGB(255, 175, 96, 66),
+                                  color: buttonColor,
                                 ),
                               ),
                               SizedBox(height: 30),
