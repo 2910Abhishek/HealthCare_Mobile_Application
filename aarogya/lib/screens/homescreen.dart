@@ -31,7 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
           .get();
       if (userData.exists) {
         setState(() {
-          _username = userData['username'];
+          _username = userData['username'].split(' ')[0];
           _email = userData['email'];
         });
       }
@@ -41,27 +41,58 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: IconButton(
-          icon: Icon(
-            Icons.account_circle,
-            size: 48,
-          ),
-          onPressed: () {
-            Navigator.pushNamed(context, '/profile');
-          },
-        ),
-        title: Text(
-          "Hi, Welcome Back \n$_username",
-          style: TextStyle(fontSize: 20),
-        ),
-      ),
       body: SafeArea(
-        child: Column(
-          children: [
-            // Your content goes here
-          ],
+        child: Padding(
+          padding: const EdgeInsets.all(14.0),
+          child: Column(
+            children: [
+              Container(
+                height: 60,
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                  borderRadius: BorderRadius.circular(10.0),
+                  shape: BoxShape.rectangle,
+                ),
+                child: AppBar(
+                  automaticallyImplyLeading: false,
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  leading: IconButton(
+                    icon: Icon(
+                      Icons.account_circle,
+                      size: 35,
+                      color: Colors.white,
+                    ),
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/profile');
+                    },
+                  ),
+                  title: Text(
+                    "Hello $_username",
+                    style: TextStyle(fontSize: 20, color: Colors.white),
+                  ),
+                  actions: [
+                    IconButton(
+                      icon: Icon(Icons.notifications),
+                      onPressed: () {
+                        // Handle notifications icon press
+                      },
+                      color: Colors.white,
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 20),
+              Expanded(
+                child: Center(
+                  child: Text(
+                    "Welcome to Home Screen!",
+                    style: TextStyle(fontSize: 24, color: Colors.black),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

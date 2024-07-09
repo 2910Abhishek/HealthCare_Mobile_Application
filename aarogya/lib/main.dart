@@ -3,6 +3,7 @@ import 'package:aarogya/screens/loginscreen.dart';
 import 'package:aarogya/screens/onboardingscreen.dart';
 import 'package:aarogya/screens/profilescreen.dart';
 import 'package:aarogya/screens/signUpScreen.dart';
+import 'package:aarogya/screens/tabsscreen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 
@@ -27,7 +28,7 @@ class MyApp extends StatelessWidget {
         '/': (context) => OnBoardingScreen(),
         '/login': (context) => const LogInScreen(),
         '/signup': (context) => const SignUpScreen(),
-        '/home': (context) => HomeScreen(),
+        '/home': (context) => TabsScreen(),
         '/profile': (context) => ProfileScreen(),
       },
       initialRoute: '/', // Set initial route to signup screen
