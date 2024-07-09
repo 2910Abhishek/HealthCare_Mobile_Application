@@ -22,16 +22,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    String username = _user != null ? _user!.displayName ?? '' : 'Guest';
+    String username = _user != null ? _user!.displayName ?? 'Guest' : 'Guest';
 
     return Scaffold(
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // Fixed header
           Container(
             padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
             decoration: const BoxDecoration(
-              color: backgroundColor, // Use your own background color
+              color: backgroundColor,
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(20),
                 bottomRight: Radius.circular(20),
@@ -47,7 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Expanded(
                         child: Text(
-                          "Hi $username,👋", // Replace with your username variable
+                          "Hi $username,👋",
                           style: const TextStyle(
                             fontSize: 20,
                             color: Colors.white,
@@ -76,85 +77,119 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Card(
-                  color: backgroundColor, // Background color of the card
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+
+          // Scrollable content
+          Expanded(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 16),
+
+                    // Consult Doctors Card
+                    Card(
+                      color: backgroundColor,
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          const Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Consult Doctors',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white, // Text color
-                                    ),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Consult Doctors',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      SizedBox(height: 8),
+                                      Text(
+                                        'Book Appointment Effortlessly',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  SizedBox(height: 8),
-                                  Text(
-                                    'Book Appointment Effortlessly',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.white, // Text color
-                                    ),
+                                ),
+                              ),
+                              Container(
+                                width: MediaQuery.of(context).size.width * 0.4,
+                                height: 150,
+                                decoration: const BoxDecoration(
+                                  borderRadius: BorderRadius.only(
+                                    topRight: Radius.circular(30),
+                                    bottomRight: Radius.circular(30),
                                   ),
-                                ],
+                                  image: DecorationImage(
+                                    image: AssetImage(
+                                      'assets/images/doctor_image.png',
+                                    ),
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                          Container(
-                            width: MediaQuery.of(context).size.width * 0.4,
-                            height:
-                                150, // Adjust as per your image aspect ratio
-                            decoration: const BoxDecoration(
-                              borderRadius: BorderRadius.only(
-                                topRight: Radius.circular(10),
-                                bottomRight: Radius.circular(10),
-                              ),
-                              image: DecorationImage(
-                                image: AssetImage(
-                                    'assets/images/doctor_image.png'), // Replace with your image path
-                                fit: BoxFit.cover,
-                              ),
-                            ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
-                  ),
+                    ),
+
+                    const SizedBox(height: 15),
+
+                    // Top Hospitals section
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Top Hospitals",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        Column(
+                          children: [
+                            HospitalCardWidget(
+                              hospitalAddress: 'Vadodara',
+                              hospitalName: 'Sterling Hospital',
+                            ),
+                            HospitalCardWidget(
+                              hospitalAddress: 'Ahmedabad',
+                              hospitalName: 'Apollo Hospital',
+                            ),
+                            HospitalCardWidget(
+                              hospitalAddress: 'Mumbai',
+                              hospitalName: 'Lilavati Hospital',
+                            ),
+                            // Add more HospitalCardWidget instances as needed
+                          ],
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 20), // Add some space at the end
+                  ],
                 ),
-                const SizedBox(
-                  height: 15,
-                ),
-                Text("Book Appointment From below Hospital"),
-                SingleChildScrollView(
-                  child: HospitalCardWidget(
-                    hospitalAddress: 'Vadodara',
-                    hospitalName: 'Sterling Hospital',
-                  ),
-                )
-              ],
+              ),
             ),
           ),
-          // Additional widgets or content as needed
         ],
       ),
     );
