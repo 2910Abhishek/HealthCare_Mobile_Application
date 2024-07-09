@@ -83,12 +83,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               SizedBox(height: 20),
-              Expanded(
-                child: Center(
-                  child: Text(
-                    "Welcome to Home Screen!",
-                    style: TextStyle(fontSize: 24, color: Colors.black),
-                  ),
+              Center(
+                child: Text(
+                  "Welcome to Home Screen!",
+                  style: TextStyle(fontSize: 24, color: Colors.black),
                 ),
               ),
             ],

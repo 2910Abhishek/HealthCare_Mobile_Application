@@ -10,12 +10,10 @@ class DashBoardScreen extends StatefulWidget {
 class _DashBoardScreenState extends State<DashBoardScreen> {
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Center(
-        child: Text(
-          "Welcome to DashBoard Screen!",
-          style: TextStyle(fontSize: 24, color: Colors.black),
-        ),
+    return Center(
+      child: Text(
+        "Welcome to DashBoard Screen!",
+        style: TextStyle(fontSize: 24, color: Colors.black),
       ),
     );
   }
