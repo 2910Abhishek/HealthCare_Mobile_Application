@@ -1,3 +1,4 @@
+import 'package:aarogya/resources/auth_methods.dart';
 import 'package:aarogya/utils/colors.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +18,7 @@ class SignUpScreen extends StatefulWidget {
 class _SignUpScreenState extends State<SignUpScreen>
     with TickerProviderStateMixin {
   final AuthService _authService = AuthService();
+  final AuthMethods _authMethods = AuthMethods();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   final TextEditingController _nameController = TextEditingController();
@@ -206,7 +208,11 @@ class _SignUpScreenState extends State<SignUpScreen>
                               Center(
                                 child: CustomButtonForGoogle(
                                   onPressed: () async {
-                                    // Implement sign in with Google
+                                    bool res = await _authMethods
+                                        .signInWithGoogle(context);
+                                    if (res) {
+                                      Navigator.pushNamed(context, '/login');
+                                    }
                                   },
                                 ),
                               ),
