@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
 
-class DoctorCard extends StatelessWidget {
-  DoctorCard(
+class HospitalCard extends StatelessWidget {
+  HospitalCard(
       {Key? key,
       required this.name,
-      required this.speciality,
       required this.imagePath,
       this.rating = "5.0",
       required this.address});
 
   final String name;
-  final String speciality;
   final String imagePath;
   final String rating;
   final String address;
@@ -41,13 +39,6 @@ class DoctorCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      speciality,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
                       ),
                     ),
                     Text(

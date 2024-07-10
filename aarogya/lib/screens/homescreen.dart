@@ -200,7 +200,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     SizedBox(height: 16),
                     // Top Doctors list
-                    DoctorCardWidget(
+                    DoctorCard(
                       name: "Dr. Jayesh Shah",
                       speciality: "Cardiologist",
                       imagePath: "assets/images/doctor_image.png",
@@ -208,7 +208,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       rating: "5.0",
                     ),
                     SizedBox(height: 16),
-                    DoctorCardWidget(
+                    DoctorCard(
                       name: "Dr. Gaurang Patel",
                       speciality: "Physician",
                       imagePath: "assets/images/doctor_image.png",

@@ -115,8 +115,8 @@ class _SignUpScreenState extends State<SignUpScreen>
 
   @override
   Widget build(BuildContext context) {
-    const spinkit = SpinKitRotatingCircle(
-      color: Color.fromARGB(255, 0, 0, 0),
+    final spinkit = SpinKitFadingFour(
+      color: Colors.black,
       size: 50.0,
     );
 
@@ -208,11 +208,19 @@ class _SignUpScreenState extends State<SignUpScreen>
                               Center(
                                 child: CustomButtonForGoogle(
                                   onPressed: () async {
+                                    setState(() {
+                                      _isLoading = true;
+                                    });
+                                    _controller.forward();
                                     bool res = await _authMethods
                                         .signInWithGoogle(context);
                                     if (res) {
                                       Navigator.pushNamed(context, '/home');
                                     }
+                                    setState(() {
+                                      _isLoading = false;
+                                    });
+                                    _controller.reverse();
                                   },
                                 ),
                               ),

@@ -101,7 +101,7 @@ class _LogInScreenState extends State<LogInScreen>
 
   @override
   Widget build(BuildContext context) {
-    const spinkit = SpinKitRotatingCircle(
+    final spinkit = SpinKitFadingFour(
       color: Colors.black,
       size: 50.0,
     );
