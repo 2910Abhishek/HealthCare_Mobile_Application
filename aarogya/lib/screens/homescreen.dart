@@ -1,8 +1,10 @@
 import 'package:aarogya/utils/colors.dart';
-import 'package:aarogya/widgets/hospital_widget.dart';
+import 'package:aarogya/widgets/Doctor_Category.dart';
+import 'package:aarogya/widgets/doctor_card.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -13,7 +15,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   FirebaseAuth _auth = FirebaseAuth.instance;
-
   FirebaseFirestore _firestore = FirebaseFirestore.instance;
   late User? _user;
   String _username = 'Guest';
@@ -43,169 +44,177 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    String username = _username;
-
     return Scaffold(
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Fixed header
+          // App Bar
           Container(
-            padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
-            decoration: const BoxDecoration(
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top,
+              left: 16,
+              right: 16,
+              bottom: 16,
+            ),
+            decoration: BoxDecoration(
               color: backgroundColor,
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(20),
                 bottomRight: Radius.circular(20),
               ),
             ),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          "Hi $username,👋",
-                          style: const TextStyle(
-                            fontSize: 20,
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Hi $_username, 👋",
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
                       ),
-                      IconButton(
-                        icon: const Icon(
-                          Icons.notifications_none,
-                          color: Colors.white,
-                          size: 30,
-                        ),
-                        onPressed: () {
-                          // Handle notifications
-                        },
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        Icons.notifications_none,
+                        color: Colors.white,
+                        size: 30,
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    "Need some help today?",
-                    style: TextStyle(fontSize: 16, color: Colors.white),
-                  ),
-                ],
-              ),
+                      onPressed: () {
+                        // Handle notifications
+                      },
+                    ),
+                  ],
+                ),
+                SizedBox(height: 8),
+                Text(
+                  "Need some help today?",
+                  style: TextStyle(fontSize: 16, color: Colors.white),
+                ),
+                SizedBox(height: 16),
+              ],
             ),
           ),
-
-          // Scrollable content
+          // Rest of the content
           Expanded(
             child: SingleChildScrollView(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14.0),
+                padding: const EdgeInsets.all(16.0),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 16),
-
-                    // Consult Doctors Card
-                    Card(
-                      color: backgroundColor,
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Consult Doctors',
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      SizedBox(height: 8),
-                                      Text(
-                                        'Book Appointment Effortlessly',
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                width: MediaQuery.of(context).size.width * 0.4,
-                                height: 150,
-                                decoration: const BoxDecoration(
-                                  borderRadius: BorderRadius.only(
-                                    topRight: Radius.circular(30),
-                                    bottomRight: Radius.circular(30),
-                                  ),
-                                  image: DecorationImage(
-                                    image: AssetImage(
-                                      'assets/images/doctor_image.png',
-                                    ),
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 15),
-
-                    // Top Hospitals section
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          "Top Hospitals",
+                          "Categories",
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        SizedBox(height: 10),
-                        Column(
-                          children: [
-                            HospitalCardWidget(
-                              hospitalAddress: 'Vadodara',
-                              hospitalName: 'Sterling Hospital',
-                            ),
-                            HospitalCardWidget(
-                              hospitalAddress: 'Ahmedabad',
-                              hospitalName: 'Apollo Hospital',
-                            ),
-                            HospitalCardWidget(
-                              hospitalAddress: 'Mumbai',
-                              hospitalName: 'Lilavati Hospital',
-                            ),
-                            // Add more HospitalCardWidget instances as needed
-                          ],
+                        TextButton(
+                          onPressed: () {},
+                          child: Text("See all"),
                         ),
                       ],
                     ),
-                    SizedBox(height: 20), // Add some space at the end
+                    SizedBox(height: 16),
+                    // Categories
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        DoctorCategoryWidget(
+                            title: "Urology", icon: Icons.local_hospital),
+                        DoctorCategoryWidget(
+                            title: "Neurology", icon: Icons.psychology),
+                        DoctorCategoryWidget(
+                            title: "Cardiology", icon: Icons.favorite),
+                      ],
+                    ),
+                    SizedBox(height: 24),
+                    // Consult Doctors Card
+                    Card(
+                      color: backgroundColor,
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Consult Doctors',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  SizedBox(height: 8),
+                                  Text(
+                                    'Get expert advice from expert doctors',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  SizedBox(height: 16),
+                                ],
+                              ),
+                            ),
+                            Image.asset(
+                              'assets/images/doctor_image.png',
+                              width: 100,
+                              height: 100,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 24),
+                    // Top Doctors section
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Top Doctor",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {},
+                          child: Text("See all"),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 16),
+                    // Top Doctors list
+                    DoctorCardWidget(
+                      name: "Dr. Jayesh Shah",
+                      speciality: "Cardiologist",
+                      imagePath: "assets/images/doctor_image.png",
+                      address: "vadodara",
+                      rating: "5.0",
+                    ),
+                    SizedBox(height: 16),
+                    DoctorCardWidget(
+                      name: "Dr. Gaurang Patel",
+                      speciality: "Physician",
+                      imagePath: "assets/images/doctor_image.png",
+                      address: "vadodara",
+                      rating: "4.8",
+                    ),
                   ],
                 ),
               ),

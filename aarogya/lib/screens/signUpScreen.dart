@@ -211,7 +211,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                                     bool res = await _authMethods
                                         .signInWithGoogle(context);
                                     if (res) {
-                                      Navigator.pushNamed(context, '/login');
+                                      Navigator.pushNamed(context, '/home');
                                     }
                                   },
                                 ),
