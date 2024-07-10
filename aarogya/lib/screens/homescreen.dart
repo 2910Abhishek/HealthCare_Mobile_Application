@@ -1,5 +1,6 @@
 import 'package:aarogya/utils/colors.dart';
 import 'package:aarogya/widgets/hospital_widget.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -12,17 +13,37 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   FirebaseAuth _auth = FirebaseAuth.instance;
+
+  FirebaseFirestore _firestore = FirebaseFirestore.instance;
   late User? _user;
+  String _username = 'Guest';
 
   @override
   void initState() {
     super.initState();
     _user = _auth.currentUser;
+    if (_user != null) {
+      _fetchUsername();
+    }
+  }
+
+  Future<void> _fetchUsername() async {
+    try {
+      DocumentSnapshot userDoc =
+          await _firestore.collection('users').doc(_user!.uid).get();
+      if (userDoc.exists) {
+        setState(() {
+          _username = userDoc['username'];
+        });
+      }
+    } catch (e) {
+      print("Error fetching username: $e");
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    String username = _user != null ? _user!.displayName ?? 'Guest' : 'Guest';
+    String username = _username;
 
     return Scaffold(
       body: Column(

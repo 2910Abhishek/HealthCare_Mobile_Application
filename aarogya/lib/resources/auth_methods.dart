@@ -1,9 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthMethods {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Stream<User?> get authChanges => _auth.authStateChanges();
   User get user => _auth.currentUser!;
@@ -27,9 +29,18 @@ class AuthMethods {
 
       User? user = userCredential.user;
 
-      res = true;
+      if (user != null) {
+        // Store user data in Firestore
+        await _firestore.collection('users').doc(user.uid).set({
+          'email': user.email,
+          'username': user.displayName,
+        });
+
+        res = true;
+      }
     } on FirebaseAuthException catch (e) {
       res = false;
+      print("Error Signing in with Google: $e");
     }
     return res;
   }
@@ -45,7 +56,7 @@ class AuthMethods {
       res = true;
     } on FirebaseAuthException catch (e) {
       res = false;
-      print("Error Signing in with email and password:$e");
+      print("Error Signing in with email and password: $e");
     }
 
     return res;
