@@ -22,6 +22,5 @@ class DoctorCategoryWidget extends StatelessWidget {
         Text(title),
       ],
     );
-    ;
   }
 }
