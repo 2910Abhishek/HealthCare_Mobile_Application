@@ -4,6 +4,7 @@ import 'package:aarogya/screens/onboardingscreen.dart';
 import 'package:aarogya/screens/profilescreen.dart';
 import 'package:aarogya/screens/signUpScreen.dart';
 import 'package:aarogya/screens/tabsscreen.dart';
+import 'package:aarogya/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 
