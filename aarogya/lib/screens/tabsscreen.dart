@@ -1,7 +1,7 @@
 import 'package:aarogya/screens/dashboard.dart';
 import 'package:aarogya/screens/healthtracker.dart';
 import 'package:aarogya/screens/homescreen.dart';
-import 'package:aarogya/screens/record_screen.dart';
+import 'package:aarogya/labrecords/record_screen.dart';
 import 'package:flutter/material.dart';
 
 class TabsScreen extends StatefulWidget {
