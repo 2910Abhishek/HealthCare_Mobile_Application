@@ -1,7 +1,7 @@
 import 'package:aarogya/screens/dashboard.dart';
 import 'package:aarogya/screens/healthtracker.dart';
 import 'package:aarogya/screens/homescreen.dart';
-import 'package:aarogya/screens/recordscreen.dart';
+import 'package:aarogya/screens/record_screen.dart';
 import 'package:flutter/material.dart';
 
 class TabsScreen extends StatefulWidget {
@@ -25,7 +25,7 @@ class _TabsScreenState extends State<TabsScreen> {
     Widget activePage = HomeScreen();
     var activePageTitle = 'Home';
     if (_selectedPageIndex == 1) {
-      activePage = RecordScreen();
+      activePage = Upload();
       activePageTitle = 'Health Records';
     }
     if (_selectedPageIndex == 2) {
