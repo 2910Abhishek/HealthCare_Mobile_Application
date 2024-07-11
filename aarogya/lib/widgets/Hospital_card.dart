@@ -1,3 +1,4 @@
+import 'package:aarogya/screens/DoctorScreen.dart';
 import 'package:flutter/material.dart';
 
 class HospitalCard extends StatelessWidget {
@@ -16,6 +17,14 @@ class HospitalCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DoctorScreen(hospitalName: name),
+          ),
+        );
+      },
       child: Card(
         elevation: 2,
         shape: RoundedRectangleBorder(

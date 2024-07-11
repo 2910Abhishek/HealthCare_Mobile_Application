@@ -1,5 +1,6 @@
 import 'package:aarogya/utils/colors.dart';
 import 'package:aarogya/widgets/Doctor_Category.dart';
+import 'package:aarogya/widgets/Hospital_card.dart';
 import 'package:aarogya/widgets/doctor_card.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -245,17 +246,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       SizedBox(height: 16),
                       // Top Doctors list
-                      DoctorCard(
-                        name: "Dr. Jayesh Shah",
-                        speciality: "Cardiologist",
+                      HospitalCard(
+                        name: "Nursing Home",
                         imagePath: "assets/images/doctor_image.png",
                         address: "vadodara",
                         rating: "5.0",
                       ),
                       SizedBox(height: 16),
-                      DoctorCard(
-                        name: "Dr. Gaurang Patel",
-                        speciality: "Physician",
+                      HospitalCard(
+                        name: "Vrundavan Hosiptal",
                         imagePath: "assets/images/doctor_image.png",
                         address: "vadodara",
                         rating: "4.8",
