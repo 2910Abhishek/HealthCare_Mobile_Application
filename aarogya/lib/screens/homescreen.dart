@@ -20,11 +20,31 @@ class _HomeScreenState extends State<HomeScreen> {
   FirebaseFirestore _firestore = FirebaseFirestore.instance;
   late User? _user;
   String _username = 'Guest';
+  TextEditingController searchController = TextEditingController();
+
+  List<Map<String, String>> hospitals = [
+    {
+      "name": "Nursing Home Hospital",
+      "imagePath": "assets/images/doctor_image.png",
+      "address": "vadodara",
+      "rating": "5.0",
+    },
+    {
+      "name": "Vrundavan Hospital",
+      "imagePath": "assets/images/doctor_image.png",
+      "address": "vadodara",
+      "rating": "4.8",
+    },
+    // Add more hospitals here
+  ];
+
+  List<Map<String, String>> filteredHospitals = [];
 
   @override
   void initState() {
     super.initState();
     _user = _auth.currentUser;
+    filteredHospitals = hospitals;
 
     if (_user != null) {
       _fetchUsername();
@@ -36,8 +56,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
-    // Reset the status bar color when leaving this screen
     _resetStatusBarColor();
+    searchController.dispose();
     super.dispose();
   }
 
@@ -66,6 +86,15 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void searchHospitals(String query) {
+    setState(() {
+      filteredHospitals = hospitals
+          .where((hospital) =>
+              hospital["name"]!.toLowerCase().contains(query.toLowerCase()))
+          .toList();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     _setStatusBarColor();
@@ -75,7 +104,6 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Scaffold(
         body: Column(
           mainAxisAlignment: MainAxisAlignment.start,
-          //crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // App Bar
             Container(
@@ -129,8 +157,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     width: double.infinity,
                     child: Center(
                       child: TextField(
+                        controller: searchController,
+                        onChanged: searchHospitals,
                         decoration: InputDecoration(
-                          hintText: 'All Services Available',
+                          hintText: 'Search hospitals',
                           prefixIcon: Icon(Icons.search, color: Colors.grey),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
@@ -227,12 +257,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       SizedBox(height: 24),
-                      // Top Doctors section
+                      // Top Hospitals section
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            "Top Doctor",
+                            "Top Hospitals",
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -245,21 +275,22 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
                       SizedBox(height: 16),
-                      // Top Doctors list
-                      HospitalCard(
-                        name: "Nursing Home",
-                        imagePath: "assets/images/doctor_image.png",
-                        address: "vadodara",
-                        rating: "5.0",
+                      // Filtered Hospitals list
+                      Column(
+                        children: filteredHospitals.map((hospital) {
+                          return Column(
+                            children: [
+                              HospitalCard(
+                                name: hospital["name"]!,
+                                imagePath: hospital["imagePath"]!,
+                                address: hospital["address"]!,
+                                rating: hospital["rating"]!,
+                              ),
+                              SizedBox(height: 16),
+                            ],
+                          );
+                        }).toList(),
                       ),
-                      SizedBox(height: 16),
-                      HospitalCard(
-                        name: "Vrundavan Hosiptal",
-                        imagePath: "assets/images/doctor_image.png",
-                        address: "vadodara",
-                        rating: "4.8",
-                      ),
-                      SizedBox(height: 10),
                     ],
                   ),
                 ),

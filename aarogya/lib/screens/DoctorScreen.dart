@@ -13,9 +13,39 @@ class DoctorScreen extends StatefulWidget {
 }
 
 class _DoctorScreenState extends State<DoctorScreen> {
+  TextEditingController searchController = TextEditingController();
+
+  List<Map<String, String>> doctors = [
+    {
+      "name": "Dr. Jayesh Shah",
+      "speciality": "Cardiologist",
+      "imagePath": "assets/images/doctor_image.png",
+      "address": "vadodara",
+      "rating": "5.0",
+    },
+    {
+      "name": "Dr. Gaurang Patel",
+      "speciality": "Physician",
+      "imagePath": "assets/images/doctor_image.png",
+      "address": "vadodara",
+      "rating": "4.8",
+    },
+    {
+      "name": "Dr. Abhishek Parmar",
+      "speciality": "Computer Science Engineer",
+      "imagePath": "assets/images/doctor_image.png",
+      "address": "vadodara",
+      "rating": "5.0",
+    },
+    // Add more doctors here if needed
+  ];
+
+  List<Map<String, String>> filteredDoctors = [];
+
   @override
   void initState() {
     super.initState();
+    filteredDoctors = doctors;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _setStatusBarColor();
     });
@@ -35,7 +65,17 @@ class _DoctorScreenState extends State<DoctorScreen> {
   @override
   void dispose() {
     _resetStatusBarColor();
+    searchController.dispose();
     super.dispose();
+  }
+
+  void searchDoctors(String query) {
+    setState(() {
+      filteredDoctors = doctors
+          .where((doctor) =>
+              doctor["name"]!.toLowerCase().contains(query.toLowerCase()))
+          .toList();
+    });
   }
 
   @override
@@ -84,6 +124,8 @@ class _DoctorScreenState extends State<DoctorScreen> {
                   width: double.infinity,
                   child: Center(
                     child: TextField(
+                      controller: searchController,
+                      onChanged: searchDoctors,
                       decoration: InputDecoration(
                         hintText: 'Search for Doctors',
                         prefixIcon: Icon(Icons.search, color: Colors.grey),
@@ -171,40 +213,24 @@ class _DoctorScreenState extends State<DoctorScreen> {
           ),
 
           Expanded(
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            child: ListView.builder(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              itemCount: filteredDoctors.length,
+              itemBuilder: (context, index) {
+                final doctor = filteredDoctors[index];
+                return Column(
                   children: [
-                    // Top Doctors list
                     DoctorCard(
-                      name: "Dr. Jayesh Shah",
-                      speciality: "Cardiologist",
-                      imagePath: "assets/images/doctor_image.png",
-                      address: "vadodara",
-                      rating: "5.0",
+                      name: doctor["name"]!,
+                      speciality: doctor["speciality"]!,
+                      imagePath: doctor["imagePath"]!,
+                      address: doctor["address"]!,
+                      rating: doctor["rating"]!,
                     ),
                     SizedBox(height: 16),
-                    DoctorCard(
-                      name: "Dr. Gaurang Patel",
-                      speciality: "Physician",
-                      imagePath: "assets/images/doctor_image.png",
-                      address: "vadodara",
-                      rating: "4.8",
-                    ),
-                    SizedBox(height: 10),
-                    DoctorCard(
-                      name: "Dr. Abhishek Parmar",
-                      speciality: "Computer Science Engineer",
-                      imagePath: "assets/images/doctor_image.png",
-                      address: "vadodara",
-                      rating: "5.0",
-                    ),
-                    SizedBox(height: 10),
                   ],
-                ),
-              ),
+                );
+              },
             ),
           ),
         ],
