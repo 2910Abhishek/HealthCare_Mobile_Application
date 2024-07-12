@@ -137,7 +137,7 @@ class _UploadState extends State<Upload> {
                     padding: EdgeInsets.symmetric(horizontal: 50, vertical: 12),  // Adjust padding
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(30.0),
-                      color: Colors.blue,
+                      color: Color.fromRGBO(11, 143, 172, 1),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.grey.withOpacity(0.5),
