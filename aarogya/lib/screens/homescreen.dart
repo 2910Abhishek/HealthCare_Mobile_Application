@@ -21,6 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late User? _user;
   String _username = 'Guest';
   TextEditingController searchController = TextEditingController();
+  bool isSearching = false;
 
   List<Map<String, String>> hospitals = [
     {
@@ -88,6 +89,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void searchHospitals(String query) {
     setState(() {
+      isSearching = query.isNotEmpty;
       filteredHospitals = hospitals
           .where((hospital) =>
               hospital["name"]!.toLowerCase().contains(query.toLowerCase()))
@@ -174,127 +176,148 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-            // Rest of the content
+            // Conditional content
             Expanded(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "Categories",
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {},
-                            child: Text("See all"),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 16),
-                      // Categories
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          DoctorCategoryWidget(
-                              title: "Urology", icon: Icons.local_hospital),
-                          DoctorCategoryWidget(
-                              title: "Neurology", icon: Icons.psychology),
-                          DoctorCategoryWidget(
-                              title: "Cardiology", icon: Icons.favorite),
-                        ],
-                      ),
-                      SizedBox(height: 24),
-                      // Consult Doctors Card
-                      Card(
-                        color: backgroundColor,
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Consult Doctors',
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    SizedBox(height: 8),
-                                    Text(
-                                      'Get expert advice from expert doctors',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    SizedBox(height: 16),
-                                  ],
-                                ),
-                              ),
-                              Image.asset(
-                                'assets/images/doctor_image.png',
-                                width: 100,
-                                height: 100,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 24),
-                      // Top Hospitals section
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "Top Hospitals",
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {},
-                            child: Text("See all"),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 16),
-                      // Filtered Hospitals list
-                      Column(
-                        children: filteredHospitals.map((hospital) {
-                          return Column(
-                            children: [
-                              HospitalCard(
-                                name: hospital["name"]!,
-                                imagePath: hospital["imagePath"]!,
-                                address: hospital["address"]!,
-                                rating: hospital["rating"]!,
-                              ),
-                              SizedBox(height: 16),
-                            ],
-                          );
-                        }).toList(),
-                      ),
-                    ],
+              child: isSearching ? _buildSearchResults() : _buildMainContent(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearchResults() {
+    return ListView.builder(
+      itemCount: filteredHospitals.length,
+      itemBuilder: (context, index) {
+        var hospital = filteredHospitals[index];
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+          child: HospitalCard(
+            name: hospital["name"]!,
+            imagePath: hospital["imagePath"]!,
+            address: hospital["address"]!,
+            rating: hospital["rating"]!,
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildMainContent() {
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Categories",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
+                TextButton(
+                  onPressed: () {},
+                  child: Text("See all"),
+                ),
+              ],
+            ),
+            SizedBox(height: 16),
+            // Categories
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                DoctorCategoryWidget(
+                    title: "Urology", icon: Icons.local_hospital),
+                DoctorCategoryWidget(
+                    title: "Neurology", icon: Icons.psychology),
+                DoctorCategoryWidget(title: "Cardiology", icon: Icons.favorite),
+              ],
+            ),
+            SizedBox(height: 24),
+            // Consult Doctors Card
+            Card(
+              color: backgroundColor,
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
               ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Consult Doctors',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            'Get expert advice from expert doctors',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.white,
+                            ),
+                          ),
+                          SizedBox(height: 16),
+                        ],
+                      ),
+                    ),
+                    Image.asset(
+                      'assets/images/doctor_image.png',
+                      width: 100,
+                      height: 100,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            SizedBox(height: 24),
+            // Top Hospitals section
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Top Hospitals",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {},
+                  child: Text("See all"),
+                ),
+              ],
+            ),
+            SizedBox(height: 16),
+            // Hospitals list
+            Column(
+              children: hospitals.map((hospital) {
+                return Column(
+                  children: [
+                    HospitalCard(
+                      name: hospital["name"]!,
+                      imagePath: hospital["imagePath"]!,
+                      address: hospital["address"]!,
+                      rating: hospital["rating"]!,
+                    ),
+                    SizedBox(height: 16),
+                  ],
+                );
+              }).toList(),
             ),
           ],
         ),

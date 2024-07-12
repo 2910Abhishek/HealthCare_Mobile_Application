@@ -14,6 +14,7 @@ class DoctorScreen extends StatefulWidget {
 
 class _DoctorScreenState extends State<DoctorScreen> {
   TextEditingController searchController = TextEditingController();
+  bool isSearching = false;
 
   List<Map<String, String>> doctors = [
     {
@@ -71,6 +72,7 @@ class _DoctorScreenState extends State<DoctorScreen> {
 
   void searchDoctors(String query) {
     setState(() {
+      isSearching = query.isNotEmpty;
       filteredDoctors = doctors
           .where((doctor) =>
               doctor["name"]!.toLowerCase().contains(query.toLowerCase()))
@@ -141,7 +143,42 @@ class _DoctorScreenState extends State<DoctorScreen> {
               ],
             ),
           ),
+          // Conditional content
+          Expanded(
+            child: isSearching ? _buildSearchResults() : _buildMainContent(),
+          ),
+        ],
+      ),
+    );
+  }
 
+  Widget _buildSearchResults() {
+    return ListView.builder(
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      itemCount: filteredDoctors.length,
+      itemBuilder: (context, index) {
+        final doctor = filteredDoctors[index];
+        return Column(
+          children: [
+            DoctorCard(
+              name: doctor["name"]!,
+              speciality: doctor["speciality"]!,
+              imagePath: doctor["imagePath"]!,
+              address: doctor["address"]!,
+              rating: doctor["rating"]!,
+            ),
+            SizedBox(height: 16),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildMainContent() {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -189,9 +226,7 @@ class _DoctorScreenState extends State<DoctorScreen> {
                     ),
                   ),
                 ),
-                SizedBox(
-                  height: 18,
-                ),
+                SizedBox(height: 18),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -207,31 +242,30 @@ class _DoctorScreenState extends State<DoctorScreen> {
                       child: Text("See all"),
                     ),
                   ],
-                )
+                ),
               ],
             ),
           ),
-
-          Expanded(
-            child: ListView.builder(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              itemCount: filteredDoctors.length,
-              itemBuilder: (context, index) {
-                final doctor = filteredDoctors[index];
-                return Column(
-                  children: [
-                    DoctorCard(
-                      name: doctor["name"]!,
-                      speciality: doctor["speciality"]!,
-                      imagePath: doctor["imagePath"]!,
-                      address: doctor["address"]!,
-                      rating: doctor["rating"]!,
-                    ),
-                    SizedBox(height: 16),
-                  ],
-                );
-              },
-            ),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            itemCount: doctors.length,
+            itemBuilder: (context, index) {
+              final doctor = doctors[index];
+              return Column(
+                children: [
+                  DoctorCard(
+                    name: doctor["name"]!,
+                    speciality: doctor["speciality"]!,
+                    imagePath: doctor["imagePath"]!,
+                    address: doctor["address"]!,
+                    rating: doctor["rating"]!,
+                  ),
+                  SizedBox(height: 16),
+                ],
+              );
+            },
           ),
         ],
       ),
