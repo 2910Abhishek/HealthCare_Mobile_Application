@@ -1,25 +1,42 @@
 import 'package:aarogya/screens/DoctorScreen.dart';
+import 'package:aarogya/screens/bookAppointmentScreen.dart';
 import 'package:flutter/material.dart';
 
 class DoctorCard extends StatelessWidget {
-  DoctorCard(
-      {Key? key,
-      required this.name,
-      required this.speciality,
-      required this.imagePath,
-      this.rating = "5.0",
-      required this.address});
+  DoctorCard({
+    Key? key,
+    required this.name,
+    required this.speciality,
+    required this.imagePath,
+    this.rating = "5.0",
+    required this.address,
+    required this.hospitalName,
+  }) : super(key: key);
 
   final String name;
   final String speciality;
   final String imagePath;
   final String rating;
   final String address;
+  final String hospitalName;
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () {},
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => BookAppointmentScreen(
+              doctorName: name,
+              speciality: speciality,
+              hospitalName: hospitalName,
+              imagePath: imagePath,
+              rating: rating,
+            ),
+          ),
+        );
+      },
       child: Card(
         elevation: 2,
         shape: RoundedRectangleBorder(

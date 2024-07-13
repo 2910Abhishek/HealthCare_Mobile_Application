@@ -1,3 +1,4 @@
+import 'package:aarogya/screens/homescreen.dart';
 import 'package:aarogya/utils/colors.dart';
 import 'package:aarogya/widgets/doctor_card.dart';
 import 'package:flutter/material.dart';
@@ -107,10 +108,23 @@ class _DoctorScreenState extends State<DoctorScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    GestureDetector(
+                      child: Icon(
+                        Icons.arrow_back_outlined,
+                        color: Colors.white,
+                      ),
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => HomeScreen(),
+                            ));
+                      },
+                    ),
                     Text(
                       "Please Book Your Appointment",
                       style: TextStyle(
-                        fontSize: 20,
+                        fontSize: 19,
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                       ),
@@ -161,6 +175,7 @@ class _DoctorScreenState extends State<DoctorScreen> {
         return Column(
           children: [
             DoctorCard(
+              hospitalName: widget.hospitalName,
               name: doctor["name"]!,
               speciality: doctor["speciality"]!,
               imagePath: doctor["imagePath"]!,
@@ -256,6 +271,7 @@ class _DoctorScreenState extends State<DoctorScreen> {
               return Column(
                 children: [
                   DoctorCard(
+                    hospitalName: widget.hospitalName,
                     name: doctor["name"]!,
                     speciality: doctor["speciality"]!,
                     imagePath: doctor["imagePath"]!,
