@@ -340,7 +340,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
 
   Future<bool> _sendEmail(String attachmentPath) async {
     String username = '22cs046@charusat.edu.in';
-    String password = 'ucuv kuta isyt dtgt'; // Use secure methods to store this
+    String password = 'Create APP Password'; // Use secure methods to store this
 
     final smtpServer = gmail(username, password);
 
