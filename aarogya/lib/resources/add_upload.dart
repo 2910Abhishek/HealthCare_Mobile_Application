@@ -1,4 +1,3 @@
-
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -7,7 +6,8 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'multiple_image.dart';
 
-Future<void> addUpload(BuildContext context, Function(String, File) onAdd) async {
+Future<void> addUpload(
+    BuildContext context, Function(String, File) onAdd) async {
   // Request storage permission
   if (!await _requestStoragePermission(context)) {
     return;
@@ -60,7 +60,8 @@ Future<bool> _requestStoragePermission(BuildContext context) async {
 
   if (!storagePermissionGranted) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Storage permission is required to select a file.')),
+      SnackBar(
+          content: Text('Storage permission is required to select a file.')),
     );
   }
   return storagePermissionGranted;
@@ -73,12 +74,24 @@ Future<String?> _selectReportType(BuildContext context) async {
       return SimpleDialog(
         title: const Text('Select Report Type'),
         children: <Widget>[
-          SimpleDialogOption(onPressed: () => Navigator.pop(context, 'Lab Reports'), child: const Text('Lab Reports')),
-          SimpleDialogOption(onPressed: () => Navigator.pop(context, 'Doctor Notes'), child: const Text('Doctor Notes')),
-          SimpleDialogOption(onPressed: () => Navigator.pop(context, 'Imaging'), child: const Text('Imaging')),
-          SimpleDialogOption(onPressed: () => Navigator.pop(context, 'Prescription'), child: const Text('Prescription')),
-          SimpleDialogOption(onPressed: () => Navigator.pop(context, 'Vaccination'), child: const Text('Vaccination')),
-          SimpleDialogOption(onPressed: () => Navigator.pop(context, 'Other'), child: const Text('Other')),
+          SimpleDialogOption(
+              onPressed: () => Navigator.pop(context, 'Lab Reports'),
+              child: const Text('Lab Reports')),
+          SimpleDialogOption(
+              onPressed: () => Navigator.pop(context, 'Doctor Notes'),
+              child: const Text('Doctor Notes')),
+          SimpleDialogOption(
+              onPressed: () => Navigator.pop(context, 'Imaging'),
+              child: const Text('Imaging')),
+          SimpleDialogOption(
+              onPressed: () => Navigator.pop(context, 'Prescription'),
+              child: const Text('Prescription')),
+          SimpleDialogOption(
+              onPressed: () => Navigator.pop(context, 'Vaccination'),
+              child: const Text('Vaccination')),
+          SimpleDialogOption(
+              onPressed: () => Navigator.pop(context, 'Other'),
+              child: const Text('Other')),
         ],
       );
     },
@@ -92,8 +105,12 @@ Future<String?> _selectFileSource(BuildContext context) async {
       return SimpleDialog(
         title: const Text('Select File Source'),
         children: <Widget>[
-          SimpleDialogOption(onPressed: () => Navigator.pop(context, 'Choose from Phone'), child: const Text('Choose from Phone')),
-          SimpleDialogOption(onPressed: () => Navigator.pop(context, 'Take Photos'), child: const Text('Take Photos')),
+          SimpleDialogOption(
+              onPressed: () => Navigator.pop(context, 'Choose from Phone'),
+              child: const Text('Choose from Phone')),
+          SimpleDialogOption(
+              onPressed: () => Navigator.pop(context, 'Take Photos'),
+              child: const Text('Take Photos')),
         ],
       );
     },
@@ -156,7 +173,8 @@ Future<File?> _takePhotos(BuildContext context, String fileName) async {
   );
 }
 
-Future<File?> _convertImagesToPdf(List<File> imageFiles, String fileName) async {
+Future<File?> _convertImagesToPdf(
+    List<File> imageFiles, String fileName) async {
   final pdf = pw.Document();
 
   for (var imageFile in imageFiles) {
