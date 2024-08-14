@@ -209,7 +209,6 @@ class _LogInScreenState extends State<LogInScreen>
                         Navigator.pushNamed(context, '/signup');
                       },
                       child: Container(
-                        color: Colors.white,
                         padding: EdgeInsets.symmetric(vertical: 15),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,

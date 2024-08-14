@@ -8,20 +8,22 @@ class AuthMethods {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Stream<User?> get authChanges => _auth.authStateChanges();
-  User get user => _auth.currentUser!;
+  User? get user => _auth.currentUser;
 
   Future<bool> signInWithGoogle(BuildContext context) async {
-    bool res = false;
-
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
 
-      final GoogleSignInAuthentication? googleAuth =
-          await googleUser?.authentication;
+      if (googleUser == null) {
+        return false;
+      }
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
 
       final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth?.accessToken,
-        idToken: googleAuth?.idToken,
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
       );
 
       UserCredential userCredential =
@@ -30,43 +32,37 @@ class AuthMethods {
       User? user = userCredential.user;
 
       if (user != null) {
-        // Store user data in Firestore
         await _firestore.collection('users').doc(user.uid).set({
           'email': user.email,
           'username': user.displayName,
-        });
+        }, SetOptions(merge: true));
 
-        res = true;
+        return true;
       }
     } on FirebaseAuthException catch (e) {
-      res = false;
-      print("Error Signing in with Google: $e");
-    }
-    return res;
-  }
-
-  Future<bool> signInWithEmailAndPassword(
-      String email, String password, BuildContext context) async {
-    bool res = false;
-
-    try {
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-          email: email, password: password);
-
-      res = true;
-    } on FirebaseAuthException catch (e) {
-      res = false;
-      print("Error Signing in with email and password: $e");
-    }
-
-    return res;
-  }
-
-  void signOut() async {
-    try {
-      _auth.signOut();
+      print("Error Signing in with Google: ${e.message}");
     } catch (e) {
-      print(e);
+      print("Unexpected error during Google Sign In: $e");
+    }
+    return false;
+  }
+
+  Future<bool> signInWithEmailAndPassword(String email, String password) async {
+    try {
+      await _auth.signInWithEmailAndPassword(email: email, password: password);
+      return true;
+    } on FirebaseAuthException catch (e) {
+      print("Error Signing in with email and password: ${e.message}");
+      return false;
+    }
+  }
+
+  Future<void> signOut() async {
+    try {
+      await _auth.signOut();
+      await GoogleSignIn().signOut();
+    } catch (e) {
+      print("Error signing out: $e");
     }
   }
 }

@@ -146,7 +146,7 @@ class OnboardingPageThree extends StatelessWidget {
     return Scaffold(
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(20.0), // Adjust padding as needed
+          padding: const EdgeInsets.all(20.0),
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -161,7 +161,7 @@ class OnboardingPageThree extends StatelessWidget {
                   style: TextStyle(fontSize: 16),
                 ),
                 SizedBox(
-                  height: 250,
+                  height: 200,
                   child: Image.asset('assets/images/onboarding_screen_3.png'),
                 ),
                 SizedBox(height: 40),

@@ -141,7 +141,11 @@ class _SignUpScreenState extends State<SignUpScreen>
                             children: [
                               InkWell(
                                 onTap: () {
-                                  Navigator.pushNamed(context, '/');
+                                  Navigator.pushNamedAndRemoveUntil(
+                                    context,
+                                    '/onboarding',
+                                    (Route<dynamic> route) => false,
+                                  );
                                 },
                                 child: Icon(
                                   Icons.arrow_back_sharp,
