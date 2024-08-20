@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
@@ -10,6 +11,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:aarogya/screens/DoctorScreen.dart';
 import 'package:aarogya/utils/colors.dart';
 import 'package:aarogya/widgets/customButton.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 class BookAppointmentScreen extends StatefulWidget {
   final String doctorName;
@@ -22,8 +25,8 @@ class BookAppointmentScreen extends StatefulWidget {
     required this.doctorName,
     required this.speciality,
     required this.hospitalName,
-    required this.imagePath,
     required this.rating,
+    required this.imagePath,
   });
 
   @override
@@ -33,6 +36,16 @@ class BookAppointmentScreen extends StatefulWidget {
 class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   DateTime selectedDate = DateTime.now();
   TimeOfDay selectedTime = TimeOfDay(hour: 8, minute: 30);
+  FirebaseAuth _auth = FirebaseAuth.instance;
+  bool _isLoading = false;
+  int count = 0;
+  TextEditingController _patientNameController = TextEditingController();
+
+  @override
+  void dispose() {
+    _patientNameController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,15 +53,11 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         leading: GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) =>
-                    DoctorScreen(hospitalName: widget.hospitalName),
-              ),
-            );
-          },
+          onTap: _isLoading
+              ? null
+              : () {
+                  Navigator.of(context).pushReplacementNamed('/home');
+                },
           child: Icon(
             Icons.arrow_back_rounded,
             color: Colors.white,
@@ -60,127 +69,145 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
         ),
         backgroundColor: backgroundColor,
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Container(
-              padding: EdgeInsets.all(16),
-              color: Colors.white,
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            child: AbsorbPointer(
+              absorbing: _isLoading,
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 40,
-                        backgroundImage: AssetImage(widget.imagePath),
-                      ),
-                      SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                  Container(
+                    padding: EdgeInsets.all(16),
+                    color: Colors.white,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
                           children: [
-                            Text(
-                              widget.doctorName,
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
+                            CircleAvatar(
+                              radius: 40,
+                              backgroundImage: AssetImage(widget.imagePath),
                             ),
-                            Text(
-                              widget.speciality,
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey,
+                            SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    widget.doctorName,
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    widget.speciality,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                  Row(
+                                    children: [
+                                      Icon(Icons.star,
+                                          color: Colors.yellow, size: 16),
+                                      Text(
+                                        widget.rating,
+                                        style: TextStyle(fontSize: 14),
+                                      ),
+                                      Text(
+                                        " (80 reviews)",
+                                        style: TextStyle(
+                                            fontSize: 14, color: Colors.grey),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
-                            ),
-                            Row(
-                              children: [
-                                Icon(Icons.star,
-                                    color: Colors.yellow, size: 16),
-                                Text(
-                                  widget.rating,
-                                  style: TextStyle(fontSize: 14),
-                                ),
-                                Text(
-                                  " (80 reviews)",
-                                  style: TextStyle(
-                                      fontSize: 14, color: Colors.grey),
-                                ),
-                              ],
                             ),
                           ],
                         ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    "Description",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                        SizedBox(height: 16),
+                        Text(
+                          "Description",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          "${widget.doctorName} is a highly skilled ${widget.speciality} with years of experience in treating patients at ${widget.hospitalName}.",
+                          style: TextStyle(fontSize: 14),
+                        ),
+                      ],
                     ),
                   ),
-                  Text(
-                    "${widget.doctorName} is a highly skilled ${widget.speciality} with years of experience in treating patients at ${widget.hospitalName}.",
-                    style: TextStyle(fontSize: 14),
+                  Container(
+                    padding: EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Appointment",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 16),
+                        ListTile(
+                          title: Text(
+                              "Date: ${DateFormat('yyyy-MM-dd').format(selectedDate)}"),
+                          trailing: Icon(Icons.calendar_today),
+                          onTap: () => _selectDate(context),
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          "Schedule",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Wrap(
+                          spacing: 12,
+                          runSpacing: 12,
+                          children: [
+                            _buildTimeSlot("08:30 AM"),
+                            _buildTimeSlot("10:30 AM"),
+                            _buildTimeSlot("12:30 PM"),
+                            _buildTimeSlot("02:30 PM"),
+                            _buildTimeSlot("04:30 PM"),
+                          ],
+                        ),
+                        SizedBox(height: 24),
+                        SizedBox(
+                          width: double.infinity,
+                          child: CustomButton(
+                            text: 'Book Appointment',
+                            onPressed: _isLoading
+                                ? null
+                                : () {
+                                    _bookAppointment();
+                                  },
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
+          ),
+          if (_isLoading)
             Container(
-              padding: EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Appointment",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: 16),
-                  ListTile(
-                    title: Text(
-                        "Date: ${DateFormat('yyyy-MM-dd').format(selectedDate)}"),
-                    trailing: Icon(Icons.calendar_today),
-                    onTap: () => _selectDate(context),
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    "Schedule",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: [
-                      _buildTimeSlot("08:30 AM"),
-                      _buildTimeSlot("10:30 AM"),
-                      _buildTimeSlot("12:30 PM"),
-                      _buildTimeSlot("02:30 PM"),
-                      _buildTimeSlot("04:30 PM"),
-                    ],
-                  ),
-                  SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    child: CustomButton(
-                      text: 'Book Appointment',
-                      onPressed: _bookAppointment,
-                    ),
-                  ),
-                ],
+              color: Colors.black.withOpacity(0.5),
+              child: Center(
+                child: CircularProgressIndicator(),
               ),
             ),
-          ],
-        ),
+        ],
       ),
     );
   }
@@ -188,18 +215,22 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   Widget _buildTimeSlot(String time) {
     bool isSelected = isTimeEqual(selectedTime, time);
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          selectedTime = parseTimeString(time);
-        });
-      },
+      onTap: _isLoading
+          ? null
+          : () {
+              setState(() {
+                selectedTime = parseTimeString(time);
+              });
+            },
       child: AnimatedContainer(
         duration: Duration(milliseconds: 300),
         curve: Curves.easeInOut,
         padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         margin: EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.blue : Colors.grey.shade200,
+          color: _isLoading
+              ? Colors.grey.shade300
+              : (isSelected ? Colors.blue : Colors.grey.shade200),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
@@ -235,6 +266,8 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   }
 
   Future<void> _selectDate(BuildContext context) async {
+    if (_isLoading) return;
+
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: selectedDate,
@@ -248,116 +281,171 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
     }
   }
 
-  void _bookAppointment() async {
-    String appointmentId = DateTime.now().millisecondsSinceEpoch.toString();
-    final pdf = await _generatePDF(appointmentId);
-    final output = await getTemporaryDirectory();
-    final file = File("${output.path}/appointment.pdf");
-    await file.writeAsBytes(await pdf.save());
+  Future<void> _bookAppointment() async {
+    setState(() {
+      _isLoading = true;
+    });
 
-    bool emailSent = await _sendEmail(file.path);
+    try {
+      // Get the next appointment ID from Firestore
+      final appointmentCountDoc = await FirebaseFirestore.instance
+          .collection('appointmentCount')
+          .doc('counter')
+          .get();
 
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Appointment Booked"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Your appointment has been booked for ${DateFormat('yyyy-MM-dd').format(selectedDate)} at ${selectedTime.format(context)}.",
-              ),
-              SizedBox(height: 10),
-              Text(
-                emailSent
-                    ? "A confirmation PDF has been sent to your email."
-                    : "We couldn't send the confirmation email. Please contact support.",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: emailSent ? Colors.green : Colors.red,
+      int nextAppointmentId = 1;
+      if (appointmentCountDoc.exists) {
+        nextAppointmentId = (appointmentCountDoc.data()?['count'] ?? 0) + 1;
+      }
+
+      // Update the appointment count in Firestore
+      await FirebaseFirestore.instance
+          .collection('appointmentCount')
+          .doc('counter')
+          .set({'count': nextAppointmentId});
+
+      String appointmentId = nextAppointmentId.toString().padLeft(6, '0');
+      final pdf = await _generatePDF(appointmentId);
+      final output = await getTemporaryDirectory();
+      final file = File("${output.path}/appointment.pdf");
+      await file.writeAsBytes(await pdf.save());
+
+      bool emailSent = await _sendEmail(file.path);
+      print('Email sent: $emailSent');
+
+      // Save appointment details to Firestore
+      await FirebaseFirestore.instance.collection('appointments').add({
+        'appointmentId': appointmentId,
+        'patientName': _auth.currentUser!.displayName,
+        'doctorName': widget.doctorName,
+        'date': selectedDate,
+        'time': '${selectedTime.hour}:${selectedTime.minute}',
+        'speciality': widget.speciality,
+        'hospitalName': widget.hospitalName,
+        'userId': _auth.currentUser!.uid,
+      });
+
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text("Appointment Booked"),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Your appointment has been booked for ${DateFormat('yyyy-MM-dd').format(selectedDate)} at ${selectedTime.format(context)}.",
                 ),
+                SizedBox(height: 10),
+                Text(
+                  emailSent
+                      ? "A confirmation PDF has been sent to your email."
+                      : "We couldn't send the confirmation email. Please contact support.",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: emailSent ? Colors.green : Colors.red,
+                  ),
+                ),
+              ],
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: Text("OK"),
+                onPressed: () {
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    '/home',
+                    (route) => false,
+                  );
+                },
               ),
             ],
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text("OK"),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
+          );
+        },
+      );
+    } catch (e) {
+      print('Error: $e');
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text("Error"),
+            content: Text(
+                "An error occurred while booking the appointment. Please try again later."),
+            actions: <Widget>[
+              TextButton(
+                child: Text("OK"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   Future<pw.Document> _generatePDF(String appointmentId) async {
     final pdf = pw.Document();
+    final qrImage = await QrPainter(
+      data: appointmentId,
+      version: QrVersions.auto,
+      gapless: false,
+    ).toImageData(200.0);
 
-    String formattedTime = DateFormat('hh:mm a').format(DateTime(
-      2022,
-      1,
-      1,
-      selectedTime.hour,
-      selectedTime.minute,
-    ));
+    // Format the time as a string
+    final formattedTime =
+        "${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}";
 
     pdf.addPage(
       pw.Page(
         build: (pw.Context context) {
           return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            crossAxisAlignment: pw.CrossAxisAlignment.center,
             children: [
-              pw.Text('Appointment Details',
+              pw.Text('Appointment Confirmation',
                   style: pw.TextStyle(
                       fontSize: 20, fontWeight: pw.FontWeight.bold)),
               pw.SizedBox(height: 20),
-              pw.Text('Patient Name: [Patient Name]'),
-              pw.Text('Doctor Name: ${widget.doctorName}'),
-              pw.Text('Hospital Name: ${widget.hospitalName}'),
-              pw.Text('Date: ${DateFormat('yyyy-MM-dd').format(selectedDate)}'),
-              pw.Text('Time: $formattedTime'),
-              pw.SizedBox(height: 20),
               pw.Text('Appointment ID: $appointmentId'),
+              pw.Text('Patient Name: ${_auth.currentUser!.displayName}'),
+              pw.Text('Doctor: ${widget.doctorName}'),
+              pw.Text('Date: ${DateFormat('yyyy-MM-dd').format(selectedDate)}'),
+              pw.Text('Time: $formattedTime'), // Use the formatted time string
+              pw.Text('Speciality: ${widget.speciality}'),
+              pw.Text('Hospital: ${widget.hospitalName}'),
               pw.SizedBox(height: 20),
-              pw.BarcodeWidget(
-                barcode: pw.Barcode.qrCode(),
-                data: appointmentId,
-                width: 200,
-                height: 200,
-              ),
+              pw.Image(pw.MemoryImage(qrImage!.buffer.asUint8List()),
+                  width: 200, height: 200),
             ],
           );
         },
       ),
     );
-
     return pdf;
   }
 
-  Future<bool> _sendEmail(String attachmentPath) async {
-    String username = '22cs046@charusat.edu.in';
-    String password = 'zxae wivo lacd gnni'; // Use secure methods to store this
-
-    final smtpServer = gmail(username, password);
-
+  Future<bool> _sendEmail(String filePath) async {
+    final smtpServer = gmail('22cs046@charusat.edu.in', 'szul yxqp nkmp xxaj');
     final message = Message()
-      ..from = Address(username, 'Abhishek ')
-      ..recipients.add(
-          '29abhishek.parmar@gmail.com') // Replace with actual patient email
+      ..from = Address('22cs046@charusat.edu.in', '22cs046')
+      ..recipients.add(_auth.currentUser!.email)
       ..subject = 'Appointment Confirmation'
-      ..text = 'Please find attached your appointment details.'
-      ..attachments = [FileAttachment(File(attachmentPath))];
+      ..text = 'Please find your appointment confirmation attached.'
+      ..attachments.add(FileAttachment(File(filePath)));
 
     try {
       final sendReport = await send(message, smtpServer);
-      print('Message sent: ' + sendReport.toString());
+      print('Message sent: ${sendReport.toString()}');
       return true;
-    } on MailerException catch (e) {
-      print('Message not sent. \n' + e.toString());
+    } catch (e) {
+      print('Error sending email: $e');
       return false;
     }
   }

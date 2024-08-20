@@ -1,3 +1,4 @@
+import 'package:aarogya/screens/bookAppointmentScreen.dart';
 import 'package:aarogya/screens/homescreen.dart';
 import 'package:aarogya/screens/loginscreen.dart';
 import 'package:aarogya/screens/onboardingscreen.dart';

@@ -2,10 +2,14 @@ import 'package:aarogya/utils/colors.dart';
 import 'package:flutter/material.dart';
 
 class CustomButton extends StatelessWidget {
-  const CustomButton({Key? key, required this.text, required this.onPressed});
+  const CustomButton({
+    Key? key,
+    required this.text,
+    this.onPressed,
+  }) : super(key: key);
 
   final String text;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
