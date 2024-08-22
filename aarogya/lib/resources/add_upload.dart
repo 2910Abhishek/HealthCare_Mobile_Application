@@ -205,16 +205,11 @@ import 'multiple_image.dart';
 
 Future<void> addUpload(
     BuildContext context, Function(String, File) onAdd) async {
-  // Request storage permission
-  if (!await _requestStoragePermission(context)) {
-    return;
-  }
+  if (!await _requestStoragePermission(context)) return;
 
-  // Select report type
   String? reportType = await _selectReportType(context);
   if (reportType == null) return;
 
-  // Select file source
   String? source = await _selectFileSource(context);
   if (source == null) return;
 
@@ -223,14 +218,17 @@ Future<void> addUpload(
   if (source == 'Choose from Phone') {
     pickedFile = await _pickFileFromPhone();
   } else if (source == 'Take Photos') {
-    String? fileName = await _promptFileName(context);
-    if (fileName == null || fileName.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('File name is required.')),
-      );
-      return;
+    List<File>? capturedImages = await _takePhotos(context);
+    if (capturedImages != null && capturedImages.isNotEmpty) {
+      String? fileName = await _promptFileName(context);
+      if (fileName == null || fileName.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('File name is required.')),
+        );
+        return;
+      }
+      pickedFile = await _convertImagesToPdf(capturedImages, fileName);
     }
-    pickedFile = await _takePhotos(context, fileName);
   }
 
   if (pickedFile != null) {
@@ -257,8 +255,7 @@ Future<bool> _requestStoragePermission(BuildContext context) async {
 
   if (!storagePermissionGranted) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-          content: Text('Storage permission is required to select a file.')),
+      SnackBar(content: Text('Storage permission is required to select a file.')),
     );
   }
   return storagePermissionGranted;
@@ -268,30 +265,28 @@ Future<String?> _selectReportType(BuildContext context) async {
   return await showDialog<String>(
     context: context,
     builder: (BuildContext context) {
-      return SimpleDialog(
-        title: const Text('Select Report Type'),
-        children: <Widget>[
-          SimpleDialogOption(
-              onPressed: () => Navigator.pop(context, 'Lab Reports'),
-              child: const Text('Lab Reports')),
-          SimpleDialogOption(
-              onPressed: () => Navigator.pop(context, 'Doctor Notes'),
-              child: const Text('Doctor Notes')),
-          SimpleDialogOption(
-              onPressed: () => Navigator.pop(context, 'Imaging'),
-              child: const Text('Imaging')),
-          SimpleDialogOption(
-              onPressed: () => Navigator.pop(context, 'Prescription'),
-              child: const Text('Prescription')),
-          SimpleDialogOption(
-              onPressed: () => Navigator.pop(context, 'Vaccination'),
-              child: const Text('Vaccination')),
-          SimpleDialogOption(
-              onPressed: () => Navigator.pop(context, 'Other'),
-              child: const Text('Other')),
-        ],
+      return AlertDialog(
+        title: Text('Select Report Type'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildReportTypeOption(context, 'Lab Reports'),
+            _buildReportTypeOption(context, 'Doctor Notes'),
+            _buildReportTypeOption(context, 'Imaging'),
+            _buildReportTypeOption(context, 'Prescription'),
+            _buildReportTypeOption(context, 'Vaccination'),
+            _buildReportTypeOption(context, 'Other'),
+          ],
+        ),
       );
     },
+  );
+}
+
+Widget _buildReportTypeOption(BuildContext context, String type) {
+  return ListTile(
+    title: Text(type),
+    onTap: () => Navigator.pop(context, type),
   );
 }
 
@@ -299,16 +294,23 @@ Future<String?> _selectFileSource(BuildContext context) async {
   return await showDialog<String>(
     context: context,
     builder: (BuildContext context) {
-      return SimpleDialog(
-        title: const Text('Select File Source'),
-        children: <Widget>[
-          SimpleDialogOption(
-              onPressed: () => Navigator.pop(context, 'Choose from Phone'),
-              child: const Text('Choose from Phone')),
-          SimpleDialogOption(
-              onPressed: () => Navigator.pop(context, 'Take Photos'),
-              child: const Text('Take Photos')),
-        ],
+      return AlertDialog(
+        title: Text('Select File Source'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(Icons.phone_android),
+              title: Text('Choose from Phone'),
+              onTap: () => Navigator.pop(context, 'Choose from Phone'),
+            ),
+            ListTile(
+              leading: Icon(Icons.camera_alt),
+              title: Text('Take Photos'),
+              onTap: () => Navigator.pop(context, 'Take Photos'),
+            ),
+          ],
+        ),
       );
     },
   );
@@ -353,25 +355,16 @@ Future<String?> _promptFileName(BuildContext context) async {
   );
 }
 
-Future<File?> _takePhotos(BuildContext context, String fileName) async {
-  return await Navigator.push(
+Future<List<File>?> _takePhotos(BuildContext context) async {
+  return await Navigator.push<List<File>>(
     context,
     MaterialPageRoute(
-      builder: (context) => CaptureImagesScreen(
-        fileName: fileName,
-        onImagesCaptured: (List<File> images) async {
-          if (images.isNotEmpty) {
-            return await _convertImagesToPdf(images, fileName);
-          }
-          return null;
-        },
-      ),
+      builder: (context) => CaptureImagesScreen(),
     ),
   );
 }
 
-Future<File?> _convertImagesToPdf(
-    List<File> imageFiles, String fileName) async {
+Future<File?> _convertImagesToPdf(List<File> imageFiles, String fileName) async {
   final pdf = pw.Document();
 
   for (var imageFile in imageFiles) {

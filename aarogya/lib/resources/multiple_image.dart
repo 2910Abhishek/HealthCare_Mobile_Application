@@ -241,10 +241,7 @@ import 'package:camera/camera.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class CaptureImagesScreen extends StatefulWidget {
-  final Future<File?> Function(List<File>) onImagesCaptured;
-  final String fileName;
-
-  const CaptureImagesScreen({required this.onImagesCaptured, required this.fileName, Key? key}) : super(key: key);
+  const CaptureImagesScreen({Key? key}) : super(key: key);
 
   @override
   _CaptureImagesScreenState createState() => _CaptureImagesScreenState();
@@ -305,19 +302,12 @@ class _CaptureImagesScreenState extends State<CaptureImagesScreen> {
     }
   }
 
-  void _doneCapturing() async {
+  void _doneCapturing() {
     if (capturedImages.isNotEmpty) {
-      File? pdfFile = await widget.onImagesCaptured(capturedImages);
-      if (pdfFile != null) {
-        Navigator.pop(context, pdfFile);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to create PDF file.')),
-        );
-      }
+      Navigator.pop(context, capturedImages);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('No images captured.')),
+        SnackBar(content: Text('No images captured. Please capture at least one image.')),
       );
     }
   }
@@ -341,47 +331,54 @@ class _CaptureImagesScreenState extends State<CaptureImagesScreen> {
         title: Text('Capture Images'),
         actions: [
           IconButton(
-            icon: Icon(Icons.done),
+            icon: Icon(Icons.check),
             onPressed: _doneCapturing,
-          )
+          ),
         ],
       ),
       body: Column(
         children: [
           Expanded(
-            flex: 3,
-            child: CameraPreview(controller!),
-          ),
-          Expanded(
-            flex: 1,
-            child: Container(
-              color: Colors.black,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  IconButton(
-                    icon: Icon(Icons.camera_alt, color: Colors.white),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                CameraPreview(controller!),
+                Positioned(
+                  bottom: 20,
+                  child: FloatingActionButton(
+                    heroTag: 'captureButton',
+                    child: Icon(Icons.camera_alt),
                     onPressed: _captureImage,
                   ),
-                  Text(
-                    '${capturedImages.length} images',
-                    style: TextStyle(color: Colors.white),
+                ),
+                Positioned(
+                  top: 20,
+                  left: 20,
+                  child: Container(
+                    padding: EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '${capturedImages.length} images',
+                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-          Expanded(
-            flex: 2,
-            child: GridView.builder(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-              ),
+          Container(
+            height: 100,
+            color: Colors.black87,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
               itemCount: capturedImages.length,
               itemBuilder: (context, index) {
                 return Padding(
-                  padding: const EdgeInsets.all(2.0),
-                  child: Image.file(capturedImages[index], fit: BoxFit.cover),
+                  padding: const EdgeInsets.all(4.0),
+                  child: Image.file(capturedImages[index], height: 80, width: 80, fit: BoxFit.cover),
                 );
               },
             ),
