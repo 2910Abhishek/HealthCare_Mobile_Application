@@ -115,3 +115,11 @@ body {
   .text-muted {
     color: #65676b !important;
   }
+  /* Add this to your existing CSS file */
+.is-invalid {
+  border-color: red;
+}
+
+.text-danger {
+  color: red;
+}
