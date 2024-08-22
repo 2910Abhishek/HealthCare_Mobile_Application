@@ -1,0 +1,117 @@
+/* login.css */
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f0f2f5;
+  }
+  
+  .login-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f0f2f5;
+  }
+  
+  .login-card {
+    border-radius: 1.5rem;
+    box-shadow: 0 0.5rem 2rem rgba(18, 208, 24, 0.15);
+    background-color: #ffffff;
+    max-width: 450px;
+    width: 100%;
+  }
+  
+  .login-card .card-body {
+    padding: 3rem !important;
+  }
+  
+  h2 {
+    color: #1877f2;
+    font-size: 2rem;
+    margin-bottom: 1.5rem !important;
+  }
+  
+  .form-outline {
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    position: relative;
+  }
+  
+  .form-outline input {
+    border: 1px solid #ced4da; /* Adjust border color if needed */
+    border-radius: 0.5rem;
+    background-color: #ffffff;
+    padding: 0.75rem 1rem;
+    width: 100%;
+  }
+  
+  .form-outline input:focus {
+    border-color: #1877f2; /* Focus border color */
+    outline: none; /* Remove default outline */
+  }
+  
+  .form-outline label {
+    padding: 0.75rem 1rem;
+  }
+  
+  .btn-primary {
+    background-color: #1877f2 !important;
+    border-color: #1877f2 !important;
+    font-weight: 600 !important;
+    padding: 1rem 2rem !important; /* Adjust padding to increase button size */
+    font-size: 1.1rem !important;
+    width: 100%; /* Make button full-width or adjust as needed */
+    border-radius: 2rem!important; /* Remove rounded corners for a rectangular shape */
+    transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out !important;
+    box-shadow: none !important;
+  }
+  
+  .btn-primary:hover {
+    background-color: #166fe5 !important;
+  }
+  
+  .btn-primary:active,
+  .btn-primary:focus {
+    background-color: #145cc5 !important;
+    transform: scale(0.98);
+  }
+  
+  .btn-primary:active,
+  .btn-primary:focus,
+  .btn-primary:hover {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+  
+  .mdb-btn.btn-primary,
+  .mdb-btn.btn-primary:active,
+  .mdb-btn.btn-primary:focus {
+    padding: 0.75rem !important;
+    font-size: 1.1rem !important;
+    box-shadow: none !important;
+    outline: none !important;
+  }
+  
+  .mdb-btn.btn-primary:active {
+    transform: scale(0.98);
+  }
+  
+  .form-check-input:checked {
+    background-color: #1877f2 !important;
+    border-color: #1877f2 !important;
+  }
+  
+  a {
+    color: #1877f2 !important;
+    text-decoration: none;
+  }
+  
+  a:hover {
+    text-decoration: underline;
+  }
+  
+  .text-muted {
+    color: #65676b !important;
+  }
