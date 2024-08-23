@@ -9,9 +9,5 @@ export const navLinks = [
       id: "Scheduled",
       title: "Scheduled",
     },
-    {
-      id: "logout",
-      title: "Logout",
-    },
   ];
  
