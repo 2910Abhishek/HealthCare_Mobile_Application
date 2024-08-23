@@ -6,7 +6,7 @@ with app.app_context():
     hashed_password = generate_password_hash('123456')
 
     # Create a new user with a name
-    new_user = User(name='Ronit kothari', email='ronitkothari@gmail.com', password=hashed_password)
+    new_user = User(name='Maharshi', email='maharshi@gmail.com', password=hashed_password)
 
     # Add and commit the new user to the database
     db.session.add(new_user)

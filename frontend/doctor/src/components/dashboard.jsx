@@ -1,6 +1,8 @@
 import React from 'react';
 import Navbar from './Navbar';
-import { useAuth } from './authcontext'; // Adjust the path as needed
+import { useAuth } from './authcontext';
+import PatientList from './PatientList';
+ // Adjust the path as needed
 
 
 function Dashboard() {
@@ -9,6 +11,7 @@ function Dashboard() {
   return (
     <div className="dashboard-container">
       <Navbar/>
+      <PatientList/>
       {/* Add more content here */}
     </div>
   );
