@@ -1,136 +1,162 @@
+/* Styling for the menu icon (hamburger and close icons) */
 .menu-icon {
-    font-size: 24px;
-    cursor: pointer;
-  }
+  font-size: 24px;
+  cursor: pointer;
+}
+
+/* General styling for the navbar container */
 .navbar {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    padding: 1.25rem 1.5rem;
-    position: fixed;
-    top: 0;
-    z-index: 20;
-    transition: all 0.3s;
-   
-  }
-  
-  .navbar-scrolled {
-    background-color: #050816;
-  }
-  
-  .navbar-content {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    max-width: 80rem;
-    
-    margin-right: 10rem;
-    
-  }
-  
-  .navbar-logo {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    /* margin-right: auto; */
-    
-  }
-  
-  .navbar-logo h1 {
-    color: rgb(9, 1, 1);
-    font-size: 1.125rem;
-    font-weight: bold;
-    cursor: pointer;
-  }
-  
-  .navbar-logo p {
-    font-size: 0.875rem;
-    color: #03020d;
-  }
-  
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  position: fixed;
+  top: 0;
+  z-index: 20; /* Ensures navbar stays on top of other content */
+  transition: all 0.3s; /* Smooth transition for background change on scroll */
+}
+
+/* Additional styling for the navbar when scrolled */
+.navbar-scrolled {
+  background-color: #050816; /* Background color change on scroll */
+}
+
+/* Styling for the main content within the navbar */
+.navbar-content {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 80rem;
+  margin-right: 10rem;
+}
+
+/* Styling for the logo section of the navbar */
+.navbar-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; /* Space between logo elements */
+}
+
+/* Styling for the logo text (h1) */
+.navbar-logo h1 {
+  color: rgb(9, 1, 1);
+  font-size: 1.125rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* Styling for the logo subtitle/description (p) */
+.navbar-logo p {
+  font-size: 0.875rem;
+  color: #03020d;
+}
+
+/* Hides navbar links on smaller screens */
+.navbar-links {
+  display: none;
+}
+
+/* Styling for the navbar links list */
+.navbar-links ul {
+  display: flex;
+  flex-direction: row;
+  gap: 2.5rem; /* Space between each nav link */
+  list-style: none;
+}
+
+/* Styling for each individual navbar link */
+.navbar-links li a {
+  color: #87de23 !important;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.5rem 1.5rem; /* Padding to create the oval shape */
+  border-radius: 50px; /* Creates the oval shape */
+  border: 2px solid #87de23; /* Border color matching text color */
+  transition: all 0.3s ease; /* Smooth transition for hover effects */
+  text-align: center;
+  display: inline-block; /* Ensures the link is treated as an inline block element */
+}
+
+/* Hover and active state styling for navbar links */
+.navbar-links li a:hover,
+.navbar-links li a.active {
+  color: #fff !important;
+  background-color: rgb(142, 25, 25) !important; /* Background color on hover */
+  border-color: rgb(142, 25, 25) !important; /* Border color changes to match background */
+  transform: scale(1.05); /* Slight zoom effect on hover */
+}
+
+/* Styling for the menu icon container (right side) */
+.navbar-menu {
+  display: flex;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+/* Styling for the menu icon image */
+.navbar-menu img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  cursor: pointer;
+}
+
+/* Mobile menu styling (hidden by default) */
+.navbar-mobile-menu {
+  display: none;
+  padding: 1.5rem;
+  background: linear-gradient(to right, #434343, #000000);
+  position: absolute;
+  top: 5rem;
+  right: 1rem;
+  min-width: 140px;
+  border-radius: 0.75rem;
+}
+
+/* Active state for the mobile menu (displayed when toggled) */
+.navbar-mobile-menu.active {
+  display: flex;
+}
+
+/* Styling for the mobile menu links list */
+.navbar-mobile-menu ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem; /* Space between each mobile menu link */
+}
+
+/* Styling for each individual mobile menu link */
+.navbar-mobile-menu li a {
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  color: #050314;
+  transition: color 0.2s;
+}
+
+/* Hover and active state styling for mobile menu links */
+.navbar-mobile-menu li a:hover,
+.navbar-mobile-menu li a.active {
+  color: rgb(32, 3, 3);
+}
+
+/* Media query for screens wider than 640px */
+@media (min-width: 640px) {
+  /* Display navbar links on larger screens */
   .navbar-links {
-    display: none;
-  }
-  
-  .navbar-links ul {
-    display: flex;
-    flex-direction: row;
-    gap: 2.5rem;
-    list-style: none;
-  }
-  
-  .navbar-links li a {
-    color: #040115;
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: color 0.2s;
-  }
-  
-  .navbar-links li a:hover,
-  .navbar-links li a.active {
-    color: rgb(142, 25, 25);
-  }
-  
-  .navbar-menu {
-    display: flex;
-    flex: 1;
-    justify-content: flex-end;
-  }
-  
-  .navbar-menu img {
-    width: 28px;
-    height: 28px;
-    object-fit: contain;
-    cursor: pointer;
-  }
-  
-  .navbar-mobile-menu {
-    display: none;
-    padding: 1.5rem;
-    background: linear-gradient(to right, #434343, #000000);
-    position: absolute;
-    top: 5rem;
-    right: 1rem;
-    min-width: 140px;
-    border-radius: 0.75rem;
-  }
-  
-  .navbar-mobile-menu.active {
-    display: flex;
-  }
-  
-  .navbar-mobile-menu ul {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .navbar-mobile-menu li a {
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    color: #050314;
-    transition: color 0.2s;
-  }
-  
-  .navbar-mobile-menu li a:hover,
-  .navbar-mobile-menu li a.active {
-    color: rgb(32, 3, 3);
-  }
-  
-  @media (min-width: 640px) {
-    .navbar-links {
       display: flex;
-    }
-  
-    .navbar-menu {
-      display: none;
-    }
-  
-    .navbar-logo p {
-      display: block;
-    }
   }
+
+  /* Hide the mobile menu icon on larger screens */
+  .navbar-menu {
+      display: none;
+  }
+
+  /* Show the logo subtitle on larger screens */
+  .navbar-logo p {
+      display: block;
+  }
+}
