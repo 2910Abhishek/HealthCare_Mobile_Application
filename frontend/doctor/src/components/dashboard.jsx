@@ -1,9 +1,10 @@
 import React from 'react';
+import Navbar from './Navbar';
 
 function Dashboard() {
   return (
     <div className="dashboard-container">
-      <h1>Welcome to the Dashboard</h1>
+      <Navbar/>
       {/* Add more content here */}
     </div>
   );

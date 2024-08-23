@@ -16,8 +16,31 @@
 //   const [email, setEmail] = useState('');
 //   const [password, setPassword] = useState('');
 //   const [error, setError] = useState('');
+//   const [fieldErrors, setFieldErrors] = useState({
+//     email: '',
+//     password: '',
+//   });
 
 //   const handleLogin = async () => {
+//     let isValid = true;
+//     const newFieldErrors = { email: '', password: '' };
+
+//     if (!email) {
+//       newFieldErrors.email = 'Email is required';
+//       isValid = false;
+//     }
+//     if (!password) {
+//       newFieldErrors.password = 'Password is required';
+//       isValid = false;
+//     }
+
+//     setFieldErrors(newFieldErrors);
+
+//     if (!isValid) {
+//       setError('Please fill in all required fields.');
+//       return;
+//     }
+
 //     try {
 //       const response = await fetch('http://localhost:5000/login', {
 //         method: 'POST',
@@ -40,6 +63,21 @@
 //     }
 //   };
 
+//   const handleInputChange = (e) => {
+//     const { id, value } = e.target;
+//     if (id === 'emailInput') {
+//       setEmail(value);
+//       if (value) {
+//         setFieldErrors((prevErrors) => ({ ...prevErrors, email: '' }));
+//       }
+//     } else if (id === 'passwordInput') {
+//       setPassword(value);
+//       if (value) {
+//         setFieldErrors((prevErrors) => ({ ...prevErrors, password: '' }));
+//       }
+//     }
+//   };
+
 //   return (
 //     <MDBContainer fluid className="login-container">
 //       <MDBRow className='w-100'>
@@ -56,8 +94,11 @@
 //                 type='email' 
 //                 size='lg'
 //                 value={email}
-//                 onChange={(e) => setEmail(e.target.value)}
+//                 onChange={handleInputChange}
+//                 className={fieldErrors.email ? 'is-invalid' : ''}
 //               />
+//               {fieldErrors.email && <p className="text-danger">{fieldErrors.email}</p>}
+              
 //               <MDBInput 
 //                 wrapperClass='mb-4' 
 //                 placeholder='Password' 
@@ -65,8 +106,10 @@
 //                 type='password' 
 //                 size='lg'
 //                 value={password}
-//                 onChange={(e) => setPassword(e.target.value)}
+//                 onChange={handleInputChange}
+//                 className={fieldErrors.password ? 'is-invalid' : ''}
 //               />
+//               {fieldErrors.password && <p className="text-danger">{fieldErrors.password}</p>}
               
 //               <div className="d-flex justify-content-between mb-4">
 //                 <a href="#!" className="text-primary">Forgot password?</a>
@@ -90,10 +133,11 @@
 
 // export default Login;
 
+
 import React, { useState } from 'react';
-import "../styles/login.css";
+import { useAuth } from './authcontext';
+import { useNavigate } from 'react-router-dom';
 import {
-  MDBBtn,
   MDBContainer,
   MDBRow,
   MDBCol,
@@ -110,6 +154,9 @@ function Login() {
     email: '',
     password: '',
   });
+
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleLogin = async () => {
     let isValid = true;
@@ -143,7 +190,8 @@ function Login() {
       const data = await response.json();
 
       if (response.ok) {
-        window.location.href = data.redirect;  // Redirect to the dashboard
+        login();
+        navigate('/dashboard');
       } else {
         setError(data.message);
       }
@@ -205,7 +253,7 @@ function Login() {
                 <a href="#!" className="text-primary">Forgot password?</a>
               </div>
               <button 
-                className="w-2500 mb-4 btn-primary" 
+                className="w-100 mb-4 btn btn-primary" 
                 size='lg'
                 onClick={handleLogin}
               >
