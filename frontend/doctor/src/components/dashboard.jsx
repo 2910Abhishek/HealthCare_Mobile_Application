@@ -8,6 +8,10 @@ import PatientList from './PatientList';
 function Dashboard() {
   const { isAuthenticated, userName } = useAuth();
   console.log('Dashboard rendered with:', { isAuthenticated, userName });
+  if (!isAuthenticated) {
+    // If the user is not authenticated, redirect to the login page
+    return <Navigate to="/login" />;
+  }
   return (
     <div className="dashboard-container">
       <Navbar/>
