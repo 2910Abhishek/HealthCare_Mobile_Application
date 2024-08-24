@@ -1,216 +1,214 @@
-/* patientlist.css */
 .patient-list-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-    height: calc(100vh - 150px); /* Adjust based on your navbar height */
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .patient-list-title {
-    text-align: center;
-    color: #333;
-    margin-bottom: 20px;
-  }
-  
-  .patient-list-loading,
-  .patient-list-error,
-  .no-patients {
-    text-align: center;
-    font-size: 18px;
-    margin-top: 20px;
-    color: #666;
-  }
-  
-  .date-sections {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    overflow: hidden;
-  }
-  
-  .past-dates {
-    flex-grow: 1;
-    overflow-y: auto;
-    padding-right: 10px; /* To account for scrollbar */
-  }
-  
-  .date-section {
-    margin-bottom: 30px;
-  }
-  
-  .date-header {
-    font-size: 1.2em;
-    color: #333;
-    margin-bottom: 15px;
-    padding-bottom: 5px;
-    border-bottom: 2px solid #007bff;
-  }
-  
-  .patient-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
-  
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  height: calc(100vh - 150px); /* Adjust based on your navbar height */
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.patient-list-loading,
+.patient-list-error,
+.no-patients {
+  text-align: center;
+  font-size: 18px;
+  margin-top: 20px;
+  color: #666;
+}
+
+.date-sections {
+  display: flex;
+  flex-direction: column;
+}
+
+.date-section {
+  margin-bottom: 30px;
+}
+
+.date-section.today {
+  background-color: #e8f5e9;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 30px;
+}
+
+.date-header {
+  font-size: 1.2em;
+  color: #333;
+  margin-bottom: 15px;
+  padding-bottom: 5px;
+  border-bottom: 2px solid #007bff;
+  position: sticky;
+  top: 0;
+  background-color: inherit;
+  z-index: 5;
+}
+
+.patient-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.patient-card {
+  background-color: #ffffff;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.patient-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.patient-card.consulted {
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+}
+
+.patient-info {
+  flex: 1;
+}
+
+.patient-name {
+  margin-top: 0;
+  color: #333;
+  font-size: 1.4em;
+  margin-bottom: 10px;
+}
+
+.patient-details {
+  display: flex;
+  gap: 20px;
+}
+
+.patient-details p {
+  margin: 0;
+  color: #666;
+  font-size: 0.9em;
+}
+
+.patient-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.patient-link {
+  display: inline-block;
+  padding: 8px 12px;
+  background-color: #007bff;
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+  text-align: center;
+}
+
+.patient-link:hover {
+  background-color: #0056b3;
+}
+
+.consulted-checkbox {
+  display: flex;
+  align-items: center;
+}
+
+.consulted-checkbox label {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: #333;
+}
+
+.consulted-checkbox input[type="checkbox"] {
+  margin-right: 8px;
+}
+
+/* Scrollbar styling */
+.patient-list-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.patient-list-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.patient-list-container::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.patient-list-container::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
   .patient-card {
-    background-color: #ffffff;
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
+    align-items: flex-start;
   }
-  
-  .patient-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-  }
-  
-  .patient-info {
-    flex: 1;
-  }
-  
-  .patient-name {
-    margin-top: 0;
-    color: #333;
-    font-size: 1.4em;
-    margin-bottom: 10px;
-  }
-  
-  .patient-details {
-    display: flex;
-    gap: 20px;
-  }
-  
-  .patient-details p {
-    margin: 0;
-    color: #666;
-    font-size: 0.9em;
-  }
-  
+
   .patient-actions {
-    display: flex;
-    align-items: center;
-    gap: 15px;
+    margin-top: 15px;
+    align-self: flex-start;
   }
-  
+}
+
+@media (max-width: 768px) {
+  .patient-details {
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .patient-actions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .patient-name {
+    font-size: 1.2em;
+  }
+
+  .patient-details p {
+    font-size: 0.8em;
+  }
+
   .patient-link {
-    display: inline-block;
-    padding: 8px 12px;
-    background-color: #007bff;
-    color: white;
-    text-decoration: none;
-    border-radius: 4px;
-    font-size: 14px;
-    transition: background-color 0.3s ease;
-    text-align: center;
+    font-size: 12px;
+    padding: 6px 10px;
   }
-  
-  .patient-link:hover {
-    background-color: #0056b3;
+}
+
+@media (max-width: 480px) {
+  .patient-list-container {
+    height: calc(100vh - 100px); /* Adjust for smaller screens */
+    padding: 10px;
   }
-  
-  .consulted-checkbox {
-    display: flex;
-    align-items: center;
+
+  .patient-card {
+    padding: 15px;
   }
-  
-  .consulted-checkbox label {
-    display: flex;
-    align-items: center;
-    font-size: 14px;
-    color: #333;
+
+  .patient-name {
+    font-size: 1.1em;
   }
-  
-  .consulted-checkbox input[type="checkbox"] {
-    margin-right: 8px;
+
+  .patient-details p {
+    font-size: 0.8em;
   }
-  
-  .patient-card.consulted {
-    background-color: #e8f5e9;
+
+  .patient-link {
+    font-size: 12px;
+    padding: 6px 10px;
   }
-  
-  /* Scrollbar styling */
-  .past-dates::-webkit-scrollbar {
-    width: 8px;
-  }
-  
-  .past-dates::-webkit-scrollbar-track {
-    background: #f1f1f1;
-  }
-  
-  .past-dates::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 4px;
-  }
-  
-  .past-dates::-webkit-scrollbar-thumb:hover {
-    background: #555;
-  }
-  
-  /* Responsive adjustments */
-  @media (max-width: 1024px) {
-    .patient-card {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-  
-    .patient-actions {
-      margin-top: 15px;
-      align-self: flex-start;
-    }
-  }
-  
-  @media (max-width: 768px) {
-    .patient-details {
-      flex-direction: column;
-      gap: 5px;
-    }
-  
-    .patient-actions {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 10px;
-    }
-  
-    .patient-name {
-      font-size: 1.2em;
-    }
-  
-    .patient-details p {
-      font-size: 0.8em;
-    }
-  
-    .patient-link {
-      font-size: 12px;
-      padding: 6px 10px;
-    }
-  }
-  
-  @media (max-width: 480px) {
-    .patient-list-container {
-      height: calc(100vh - 100px); /* Adjust for smaller screens */
-      padding: 10px;
-    }
-  
-    .patient-card {
-      padding: 15px;
-    }
-  
-    .patient-name {
-      font-size: 1.1em;
-    }
-  
-    .patient-details p {
-      font-size: 0.8em;
-    }
-  
-    .patient-link {
-      font-size: 12px;
-      padding: 6px 10px;
-    }
-  }
+}
