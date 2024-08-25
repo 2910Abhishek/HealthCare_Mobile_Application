@@ -1,11 +1,11 @@
+/* PatientList styles */
 .patient-list-container {
   max-width: 1200px;
-  margin: 0 auto;
+  margin: 80px auto 0; /* Adjust top margin to account for fixed navbar */
   padding: 20px;
-  height: calc(100vh - 150px); /* Adjust based on your navbar height */
-  display: flex;
-  flex-direction: column;
+  height: calc(100vh - 80px); /* Adjust height to account for navbar */
   overflow-y: auto;
+  background-color: #f5f5f5;
 }
 
 .patient-list-loading,
@@ -13,7 +13,7 @@
 .no-patients {
   text-align: center;
   font-size: 18px;
-  margin-top: 20px;
+  margin-top: 50px;
   color: #666;
 }
 
@@ -24,24 +24,25 @@
 
 .date-section {
   margin-bottom: 30px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 }
 
 .date-section.today {
   background-color: #e8f5e9;
-  padding: 20px;
-  border-radius: 10px;
-  margin-bottom: 30px;
 }
 
 .date-header {
   font-size: 1.2em;
   color: #333;
-  margin-bottom: 15px;
-  padding-bottom: 5px;
+  margin: 0;
+  padding: 15px 20px;
+  background-color: #f0f0f0;
   border-bottom: 2px solid #007bff;
   position: sticky;
   top: 0;
-  background-color: inherit;
   z-index: 5;
 }
 
@@ -49,13 +50,14 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+  padding: 20px;
 }
 
 .patient-card {
   background-color: #ffffff;
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 20px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
   display: flex;
   justify-content: space-between;
@@ -63,13 +65,12 @@
 }
 
 .patient-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .patient-card.consulted {
   background-color: #d4edda;
-  border-color: #c3e6cb;
 }
 
 .patient-info {
@@ -77,15 +78,15 @@
 }
 
 .patient-name {
-  margin-top: 0;
+  margin: 0 0 10px;
   color: #333;
-  font-size: 1.4em;
-  margin-bottom: 10px;
+  font-size: 1.2em;
 }
 
 .patient-details {
   display: flex;
   gap: 20px;
+  flex-wrap: wrap;
 }
 
 .patient-details p {
@@ -98,22 +99,22 @@
   display: flex;
   align-items: center;
   gap: 15px;
+  flex-wrap: wrap;
 }
 
 .patient-link {
   display: inline-block;
   padding: 8px 12px;
-  background-color: #007bff;
+  background-color: #b7ff00;
   color: white;
   text-decoration: none;
   border-radius: 4px;
   font-size: 14px;
   transition: background-color 0.3s ease;
-  text-align: center;
 }
 
 .patient-link:hover {
-  background-color: #0056b3;
+  background-color: #103a68;
 }
 
 .consulted-checkbox {
@@ -126,6 +127,7 @@
   align-items: center;
   font-size: 14px;
   color: #333;
+  cursor: pointer;
 }
 
 .consulted-checkbox input[type="checkbox"] {
@@ -164,6 +166,11 @@
 }
 
 @media (max-width: 768px) {
+  .patient-list-container {
+    margin-top: 60px; /* Adjust for smaller navbar on mobile */
+    height: calc(100vh - 60px);
+  }
+
   .patient-details {
     flex-direction: column;
     gap: 5px;
@@ -176,7 +183,7 @@
   }
 
   .patient-name {
-    font-size: 1.2em;
+    font-size: 1.1em;
   }
 
   .patient-details p {
@@ -191,7 +198,6 @@
 
 @media (max-width: 480px) {
   .patient-list-container {
-    height: calc(100vh - 100px); /* Adjust for smaller screens */
     padding: 10px;
   }
 
@@ -200,15 +206,15 @@
   }
 
   .patient-name {
-    font-size: 1.1em;
+    font-size: 1em;
   }
 
   .patient-details p {
-    font-size: 0.8em;
+    font-size: 0.75em;
   }
 
   .patient-link {
-    font-size: 12px;
-    padding: 6px 10px;
+    font-size: 11px;
+    padding: 5px 8px;
   }
 }
