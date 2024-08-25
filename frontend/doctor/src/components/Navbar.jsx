@@ -239,7 +239,7 @@ const Navbar = () => {
           <h1>{isAuthenticated ? `Welcome, ${userName}` : "Welcome"}</h1>
         </div>
 
-        <ul className={`navbar-links ${toggle ? "navbar-links-active" : ""}`}>
+        <ul className="navbar-links">
           {navLinks.map((nav) => (
             <li key={nav.id}>
               <a
@@ -258,11 +258,11 @@ const Navbar = () => {
           )}
         </ul>
 
-        <div className="navbar-menu">
+        <div className="navbar-menu" onClick={() => setToggle(!toggle)}>
           {toggle ? (
-            <FaTimes className="menu-icon" onClick={() => setToggle(false)} />
+            <FaTimes className="menu-icon" />
           ) : (
-            <FaBars className="menu-icon" onClick={() => setToggle(true)} />
+            <FaBars className="menu-icon" />
           )}
         </div>
       </div>
@@ -294,3 +294,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
