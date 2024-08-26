@@ -541,6 +541,7 @@ const PatientCard = ({ patient, handleConsultedChange }) => (
           Lab Report
         </a>
       )}
+      
       <div className="consulted-checkbox">
         <label>
           <input 
