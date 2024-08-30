@@ -1,16 +1,45 @@
 /* PatientList styles */
 .patient-list-container {
   max-width: 1200px;
-  margin: 80px auto 0; /* Adjust top margin to account for fixed navbar */
+  margin: 80px auto 0;
   padding: 20px;
-  height: calc(100vh - 80px); /* Adjust height to account for navbar */
+  height: calc(100vh - 80px);
   overflow-y: auto;
   background-color: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.patient-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.patient-list-header h1 {
+  font-size: 24px;
+  color: #333;
+}
+
+.date-picker-container {
+  display: flex;
+  align-items: center;
+  z-index: 1000;
+}
+
+.date-picker {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
 }
 
 .patient-list-loading,
 .patient-list-error,
-.no-patients {
+.no-patients,
+.no-patients-for-date {
   text-align: center;
   font-size: 18px;
   margin-top: 50px;
@@ -20,6 +49,7 @@
 .date-sections {
   display: flex;
   flex-direction: column;
+  gap: 30px;
 }
 
 .date-section {
@@ -32,6 +62,10 @@
 
 .date-section.today {
   background-color: #e8f5e9;
+}
+
+.date-section.selected {
+  background-color: #e3f2fd;
 }
 
 .date-header {
@@ -105,7 +139,7 @@
 .patient-link {
   display: inline-block;
   padding: 8px 12px;
-  background-color: #b7ff00;
+  background-color: #7ee61eda;
   color: white;
   text-decoration: none;
   border-radius: 4px;
@@ -114,7 +148,7 @@
 }
 
 .patient-link:hover {
-  background-color: #103a68;
+  background-color: #cd2147c4;
 }
 
 .consulted-checkbox {
@@ -132,6 +166,17 @@
 
 .consulted-checkbox input[type="checkbox"] {
   margin-right: 8px;
+}
+
+/* New styles for future appointments */
+.future-appointments {
+  margin-top: 30px;
+}
+
+.future-appointments h2 {
+  font-size: 1.5em;
+  color: #333;
+  margin-bottom: 15px;
 }
 
 /* Scrollbar styling */
@@ -167,8 +212,17 @@
 
 @media (max-width: 768px) {
   .patient-list-container {
-    margin-top: 60px; /* Adjust for smaller navbar on mobile */
+    margin-top: 60px;
     height: calc(100vh - 60px);
+  }
+
+  .patient-list-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .date-picker-container {
+    margin-top: 10px;
   }
 
   .patient-details {

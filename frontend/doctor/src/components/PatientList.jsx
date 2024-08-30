@@ -557,18 +557,19 @@
 // );
 
 // export default PatientList;
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from './authcontext';
 import { io } from 'socket.io-client';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 import "../styles/patientlist.css";
 
 const PatientList = () => {
   const [patientsByDate, setPatientsByDate] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(null);
   const { userName } = useAuth();
-  const todaySectionRef = useRef(null);
   const containerRef = useRef(null);
   const socket = useRef(null);
 
@@ -597,12 +598,6 @@ const PatientList = () => {
       }
     };
   }, [userName]);
-
-  useEffect(() => {
-    if (todaySectionRef.current) {
-      todaySectionRef.current.scrollIntoView({ behavior: 'auto', block: 'start' });
-    }
-  }, [patientsByDate]);
 
   const fetchPatients = async () => {
     try {
@@ -648,40 +643,63 @@ const PatientList = () => {
 
   const today = new Date().toLocaleDateString();
   const sortedDates = Object.keys(patientsByDate).sort((a, b) => new Date(a) - new Date(b));
-  const pastDates = sortedDates.filter(date => new Date(date) < new Date(today));
   const futureDates = sortedDates.filter(date => new Date(date) > new Date(today));
+
+  const displayDate = selectedDate ? selectedDate.toLocaleDateString() : today;
 
   return (
     <div className="patient-list-container" ref={containerRef}>
+      <div className="patient-list-header">
+        <h1>Patient Appointments</h1>
+        <div className="date-picker-container">
+          <DatePicker
+            selected={selectedDate}
+            onChange={date => setSelectedDate(date)}
+            maxDate={new Date()}
+            placeholderText="Select past date"
+            className="date-picker"
+            isClearable
+          />
+        </div>
+      </div>
       {sortedDates.length === 0 ? (
         <p className="no-patients">No patients scheduled for checkup.</p>
       ) : (
         <div className="date-sections">
-          <DateSection dates={pastDates} patientsByDate={patientsByDate} handleConsultedChange={handleConsultedChange} />
-          <div ref={todaySectionRef}>
-            <DateSection 
-              dates={[today]} 
-              patientsByDate={patientsByDate} 
-              handleConsultedChange={handleConsultedChange} 
-              isToday={true}
-            />
-          </div>
-          <DateSection dates={futureDates} patientsByDate={patientsByDate} handleConsultedChange={handleConsultedChange} />
+          <DateSection
+            dates={[displayDate]}
+            patientsByDate={patientsByDate}
+            handleConsultedChange={handleConsultedChange}
+            isToday={displayDate === today}
+            isSelected={selectedDate !== null}
+          />
+          {futureDates.length > 0 && (
+            <div className="future-appointments">
+              <h2>Future Appointments</h2>
+              <DateSection 
+                dates={futureDates} 
+                patientsByDate={patientsByDate} 
+                handleConsultedChange={handleConsultedChange} 
+              />
+            </div>
+          )}
         </div>
       )}
     </div>
   );
 }
 
-const DateSection = ({ dates, patientsByDate, handleConsultedChange, isToday = false }) => {
+const DateSection = ({ dates, patientsByDate, handleConsultedChange, isToday = false, isSelected = false }) => {
   return dates.map(date => {
     const patients = patientsByDate[date] || [];
     return (
-      <div key={date} className={`date-section ${isToday ? 'today' : ''}`}>
-        <h2 className="date-header">{isToday ? 'Today' : date}</h2>
+      <div key={date} className={`date-section ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}`}>
+        <h2 className="date-header">
+          {isToday ? 'Today' : isSelected ? 'Selected Date' : new Date(date).toLocaleDateString()}
+        </h2>
         <div className="patient-grid">
           {patients.length === 0 ? (
-            <p>No patients scheduled for this date.</p>
+            <p className="no-patients-for-date">No patients scheduled for this date.</p>
           ) : (
             patients.map((patient, index) => (
               <div key={index} className={`patient-card ${patient.consulted ? 'consulted' : ''}`}>
@@ -690,7 +708,7 @@ const DateSection = ({ dates, patientsByDate, handleConsultedChange, isToday = f
                   <div className="patient-details">
                     <p>Gender: {patient.gender}</p>
                     <p>Age: {patient.age}</p>
-                    <p>Reporting Time: {patient.reporting_time}</p>
+                    <p>Reporting Time: {new Date(patient.reporting_time).toLocaleTimeString()}</p>
                   </div>
                 </div>
                 <div className="patient-actions">
