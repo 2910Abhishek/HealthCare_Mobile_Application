@@ -745,7 +745,6 @@
 // };
 
 // export default PatientList;
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './authcontext';
@@ -802,12 +801,17 @@ const PatientList = () => {
       const data = await response.json();
       const filteredPatients = data.filter(patient => patient.assigned_doctor === userName);
 
+      const storedConsultedStatus = JSON.parse(localStorage.getItem('consultedStatus') || '{}');
+
       const groupedPatients = filteredPatients.reduce((acc, patient) => {
         const date = new Date(patient.reporting_time).toLocaleDateString();
         if (!acc[date]) {
           acc[date] = [];
         }
-        acc[date].push({...patient, consulted: false});
+        acc[date].push({
+          ...patient,
+          consulted: storedConsultedStatus[patient.id] || false
+        });
         return acc;
       }, {});
 
@@ -821,11 +825,17 @@ const PatientList = () => {
   };
 
   const handleConsultedChange = (event, date, index) => {
-    event.stopPropagation(); // Prevent event from bubbling up to the patient card
+    event.stopPropagation();
     setPatientsByDate(prevPatients => {
-      const newPatients = JSON.parse(JSON.stringify(prevPatients)); // Deep copy
+      const newPatients = JSON.parse(JSON.stringify(prevPatients));
       if (newPatients[date] && newPatients[date][index]) {
-        newPatients[date][index].consulted = !newPatients[date][index].consulted;
+        const patient = newPatients[date][index];
+        patient.consulted = !patient.consulted;
+        
+        // Update localStorage
+        const storedConsultedStatus = JSON.parse(localStorage.getItem('consultedStatus') || '{}');
+        storedConsultedStatus[patient.id] = patient.consulted;
+        localStorage.setItem('consultedStatus', JSON.stringify(storedConsultedStatus));
       }
       return newPatients;
     });
