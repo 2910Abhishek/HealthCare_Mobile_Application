@@ -54,7 +54,7 @@ const PatientDetail = () => {
       </div>
 
       <div className="section-content prescription">
-        <h2>Prescription Section</h2>
+        <h2>Prescription</h2>
         <form onSubmit={handleSubmit}>
           <div>
             <label>Date:</label>
