@@ -745,6 +745,7 @@
 // };
 
 // export default PatientList;
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './authcontext';
@@ -846,8 +847,6 @@ const PatientList = () => {
       .flat()
       .find(patient => patient.id === patientId);
   
-    console.log('Selected Patient:', selectedPatient);
-  
     if (selectedPatient) {
       navigate(`/patient/${patientId}`, { state: { patient: selectedPatient } });
     } else {
@@ -860,10 +859,13 @@ const PatientList = () => {
 
   const today = new Date().toLocaleDateString();
   const sortedDates = Object.keys(patientsByDate).sort((a, b) => new Date(a) - new Date(b));
-  const pastDates = sortedDates.filter(date => new Date(date) < new Date(today));
+  const pastDates = sortedDates.filter(date => new Date(date) < new Date(today) && (!selectedDate || new Date(date).toLocaleDateString() !== selectedDate.toLocaleDateString()));
   const futureDates = sortedDates.filter(date => new Date(date) > new Date(today));
+  const currentDate = sortedDates.find(date => new Date(date).toLocaleDateString() === today);
+  const displayDate = selectedDate ? selectedDate.toLocaleDateString() : currentDate || today;
 
-  const displayDate = selectedDate ? selectedDate.toLocaleDateString() : today;
+  const isTodaySelected = selectedDate && selectedDate.toLocaleDateString() === today;
+  const isPastDateSelected = selectedDate && new Date(selectedDate) < new Date(today);
 
   return (
     <div className="patient-list-container" ref={containerRef}>
@@ -892,7 +894,7 @@ const PatientList = () => {
             isToday={displayDate === today}
             isSelected={selectedDate !== null}
           />
-          {futureDates.length > 0 && (
+          {!isTodaySelected && !isPastDateSelected && futureDates.length > 0 && (
             <div className="future-appointments">
               <h2>Future Appointments</h2>
               <DateSection 
@@ -903,17 +905,7 @@ const PatientList = () => {
               />
             </div>
           )}
-          {pastDates.length > 0 && (
-            <div className="past-appointments">
-              <h2>Past Appointments</h2>
-              <DateSection 
-                dates={pastDates} 
-                patientsByDate={patientsByDate} 
-                handleConsultedChange={handleConsultedChange} 
-                handlePatientClick={handlePatientClick}
-              />
-            </div>
-          )}
+          
         </div>
       )}
     </div>
