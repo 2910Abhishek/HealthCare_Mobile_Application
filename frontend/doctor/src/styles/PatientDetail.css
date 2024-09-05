@@ -1,144 +1,228 @@
 /* PatientDetail.css */
 
-/* Container styling */
+/* Main container styling */
 .container {
+    max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
-    max-width: 800px;
     background-color: #f9f9f9;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-/* Heading styling */
-h1 {
-    font-size: 2em;
+/* Heading styles */
+h1, h2 {
     color: #333;
     text-align: center;
     margin-bottom: 20px;
 }
-
-/* Button styling for tabs */
-button {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    margin-right: 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 1em;
-    transition: background-color 0.3s;
-}
-
-button:hover {
-    background-color: #0056b3;
-}
-
-/* Active tab button */
-button.active {
-    background-color: #0056b3;
-}
-
-/* Form styling */
-form {
-    margin-top: 20px;
-}
-
-form div {
-    margin-bottom: 15px;
-}
-
-label {
-    display: block;
-    font-weight: bold;
-    margin-bottom: 5px;
-}
-
-input[type="text"],
-input[type="date"],
-textarea {
-    width: 100%;
-    padding: 8px;
+/* Reduced size for date input */
+input[type="date"], input[type="time"] {
+    width: 150px; /* Adjusted width */
+    padding: 4px;
     border: 1px solid #ccc;
     border-radius: 4px;
-    font-size: 1em;
+    font-size: 13px;
 }
 
-textarea {
-    resize: vertical;
-    min-height: 100px;
-}
-
-button[type="submit"] {
-    background-color: #28a745;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 1em;
-    transition: background-color 0.3s;
-    margin-top: 10px;
-}
-
-button[type="submit"]:hover {
-    background-color: #218838;
-}
-
-/* Section Content Styling */
+/* Section content spacing */
 .section-content {
     margin-top: 20px;
 }
 
-h2 {
-    font-size: 1.5em;
-    color: #555;
-    margin-bottom: 15px;
-}
-
-/* Prescription, History, Lab Report styling */
-.prescription,
-.history,
-.lab-report {
-    background-color: white;
+/* Patient info card styling */
+.patient-info {
+    background-color: #fff;
     padding: 15px;
-    border: 1px solid #e0e0e0;
     border-radius: 4px;
     margin-bottom: 20px;
 }
 
-/* Responsive design for smaller screens */
-@media (max-width: 600px) {
+/* Form group spacing */
+.form-group {
+    margin-bottom: 15px;
+}
+
+/* General form control styling */
+.form-control {
+    width: 100%;
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+/* Table responsive wrapper */
+.table-responsive {
+    overflow-x: auto;
+    margin-bottom: 20px;
+}
+
+/* Medication table styling */
+.medication-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+/* Table cell styling */
+.medication-table th,
+.medication-table td {
+    border: 1px solid #ddd;
+    padding: 6px; /* Reduced padding */
+    text-align: left;
+    vertical-align: middle;
+}
+
+/* Table header styling */
+.medication-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+/* Table cell background */
+.medication-table td {
+    background-color: #fff;
+}
+
+/* Input and select styling within the table */
+.medication-table input[type="text"],
+.medication-table select {
+    width: 100%;
+    padding: 2px 0.5px; /* Reduced padding for height reduction */
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-size: 12px;
+    height: 24px; /* Explicitly set height */
+}
+
+/* Checkbox styling in the table */
+.medication-table input[type="checkbox"] {
+    margin: 0;
+    vertical-align: middle;
+}
+
+/* General button styling */
+.btn {
+    padding: 6px 12px; /* Reduced padding */
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px; /* Slightly reduced font size */
+    transition: background-color 0.3s;
+}
+
+/* Primary button color (Add Medication) */
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+}
+
+/* Success button color (Submit) */
+.btn-success {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+}
+
+/* Danger button color (Remove) */
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+    padding: 2px 6px; /* Further reduced padding for small remove button */
+    font-size: 11px;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+}
+
+/* Add Medication button specific styling */
+.btn-add-medication {
+    padding: 26px 4px;
+    font-size: 12px;
+    width: auto;
+    display: inline-block;
+    
+}
+
+/* Utility class for bottom margin */
+.mb-3 {
+    margin-bottom: 15px;
+}
+
+/* Responsive design */
+@media (max-width: 992px) {
+    .medication-table {
+        font-size: 13px;
+    }
+
+    .medication-table th,
+    .medication-table td {
+        padding: 5px;
+    }
+
+    .medication-table input[type="text"],
+    .medication-table select {
+        font-size: 11px;
+        height: 22px; /* Slightly reduced height for smaller screens */
+    }
+}
+
+@media (max-width: 768px) {
     .container {
         padding: 10px;
     }
 
-    h1 {
-        font-size: 1.5em;
+    .medication-table {
+        font-size: 12px;
     }
 
-    button {
-        font-size: 0.9em;
-        padding: 8px 16px;
+    .medication-table th,
+    .medication-table td {
+        padding: 4px;
     }
 
-    label {
-        font-size: 0.9em;
+    .medication-table input[type="text"],
+    .medication-table select {
+        padding: 1px 2px;
+        font-size: 10px;
+        height: 20px; /* Further reduced height for mobile screens */
     }
 
-    input[type="text"],
-    input[type="date"],
-    textarea {
-        font-size: 0.9em;
+    .btn {
+        padding: 4px 8px;
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 576px) {
+    .medication-table {
+        font-size: 11px;
     }
 
-    button[type="submit"] {
-        font-size: 0.9em;
-        padding: 8px 16px;
+    .medication-table th,
+    .medication-table td {
+        padding: 2px;
     }
 
-    h2 {
-        font-size: 1.3em;
+    .medication-table input[type="text"],
+    .medication-table select {
+        padding: 1px;
+        font-size: 9px;
+        height: 18px; /* Smallest height for very small screens */
+    }
+
+    .btn {
+        padding: 3px 6px;
+        font-size: 10px;
     }
 }
