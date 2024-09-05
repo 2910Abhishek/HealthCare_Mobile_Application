@@ -146,6 +146,9 @@
   font-size: 14px;
   transition: background-color 0.3s ease;
 }
+.date-section.future {
+  background-color: #9bc7dbc5; /* Light blue background for future appointments */
+}
 
 .patient-link:hover {
   background-color: #cd2147c4;

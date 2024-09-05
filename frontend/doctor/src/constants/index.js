@@ -9,5 +9,20 @@ export const navLinks = [
       id: "Scheduled",
       title: "Scheduled",
     },
+
   ];
+  
+export const medicines = [
+  "Paracetamol",
+  "Ibuprofen",
+  "Amoxicillin",
+  "Omeprazole",
+  "Metformin",
+  "Amlodipine",
+  "Lisinopril",
+  "Levothyroxine",
+  "Atorvastatin",
+  "Metoprolol",
+  // Add more medicines as needed
+];
  

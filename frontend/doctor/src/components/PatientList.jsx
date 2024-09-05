@@ -779,9 +779,8 @@ const PatientList = () => {
           const date = new Date(newPatient.reporting_time).toLocaleDateString();
           const newPatients = { ...prevPatients };
 
-          // Check if patient already exists
           if (newPatients[date]?.some(patient => patient.id === newPatient.id)) {
-            return newPatients; // Don't add the patient if already exists
+            return newPatients;
           }
 
           if (!newPatients[date]) {
@@ -840,7 +839,6 @@ const PatientList = () => {
         const patient = newPatients[date][index];
         patient.consulted = !patient.consulted;
         
-        // Update localStorage
         const storedConsultedStatus = JSON.parse(localStorage.getItem('consultedStatus') || '{}');
         storedConsultedStatus[patient.id] = patient.consulted;
         localStorage.setItem('consultedStatus', JSON.stringify(storedConsultedStatus));
@@ -876,8 +874,7 @@ const PatientList = () => {
           <DatePicker
             selected={selectedDate}
             onChange={date => setSelectedDate(date)}
-            maxDate={new Date()}
-            placeholderText="Select past date"
+            placeholderText="Select date"
             className="date-picker"
             isClearable
           />
@@ -904,10 +901,14 @@ const PatientList = () => {
 const DateSection = ({ dates, patientsByDate, handleConsultedChange, handlePatientClick, isToday = false, isSelected = false }) => {
   return dates.map(date => {
     const patients = patientsByDate[date] || [];
+    const displayDate = new Date(date);
+    const isInFuture = displayDate > new Date();
+
     return (
-      <div key={date} className={`date-section ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}`}>
+      <div key={date} className={`date-section ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''} ${isInFuture ? 'future' : ''}`}>
         <h2 className="date-header">
-          {isToday ? 'Today' : isSelected ? 'Selected Date' : new Date(date).toLocaleDateString()}
+          {isToday ? 'Today' : isSelected ? 'Selected Date' : displayDate.toLocaleDateString()}
+          {isInFuture && ' (Future Appointment)'}
         </h2>
         <div className="patient-grid">
           {patients.length === 0 ? (

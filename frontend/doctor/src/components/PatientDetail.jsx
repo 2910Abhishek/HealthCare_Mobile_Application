@@ -98,10 +98,14 @@
 //   )
 // }
 // export default PatientDetail;
-        
+
+
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import DatePicker from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
 import "../styles/PatientDetail.css";
+import { medicines } from '../constants'; // Import the medicines list
 
 const PatientDetail = () => {
   const location = useLocation();
@@ -109,6 +113,9 @@ const PatientDetail = () => {
   const [patient, setPatient] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [suggestions, setSuggestions] = useState([]);
+  const [typing, setTyping] = useState(false);
+  const [selectedMedicines, setSelectedMedicines] = useState({});
 
   const [prescription, setPrescription] = useState({
     date: '',
@@ -122,7 +129,8 @@ const PatientDetail = () => {
       timing: ''
     }],
     remarks: '',
-    nextAppointment: ''
+    nextAppointment: null,
+    isNextAppointmentNeeded: true
   });
 
   useEffect(() => {
@@ -137,20 +145,77 @@ const PatientDetail = () => {
 
   const handleInputChange = (e, index) => {
     const { name, value, type, checked } = e.target;
-    if (name === 'date' || name === 'remarks' || name === 'nextAppointment') {
+    
+    if (name === 'date' || name === 'remarks') {
       setPrescription(prevState => ({ ...prevState, [name]: value }));
-    } else {
+    } else if (name === 'isNextAppointmentNeeded') {
+      setPrescription(prevState => ({ 
+        ...prevState, 
+        isNextAppointmentNeeded: checked,
+        nextAppointment: checked ? prevState.nextAppointment : null
+      }));
+    } else if (name.startsWith('medication')) {
       const newMedications = prescription.medications.map((medication, i) => {
         if (i === index) {
           return { 
             ...medication, 
-            [name]: type === 'checkbox' ? checked : value 
+            [name.split('.')[1]]: type === 'checkbox' ? checked : value 
           };
         }
         return medication;
       });
       setPrescription(prevState => ({ ...prevState, medications: newMedications }));
+
+      // Show suggestions only when typing in the medicine field
+      if (name.endsWith('medicine')) {
+        setTyping(true);
+        if (value.length > 0) {
+          const filteredSuggestions = medicines.filter(med => 
+            med.toLowerCase().startsWith(value.toLowerCase())  // Filter only medicines that start with the input value
+          );
+          setSuggestions(filteredSuggestions);
+        } else {
+          setSuggestions([]);  // Clear suggestions if the input is empty
+        }
+      }
     }
+  };
+
+  const handleSuggestionClick = (suggestion, index) => {
+    const newMedications = prescription.medications.map((medication, i) => {
+      if (i === index) {
+        return { ...medication, medicine: suggestion };
+      }
+      return medication;
+    });
+    setPrescription(prevState => ({ ...prevState, medications: newMedications }));
+    setSuggestions([]);
+    setTyping(false);  // Stop showing suggestions after selection
+  };
+
+  const handleCheckboxChange = (suggestion, index) => {
+    setSelectedMedicines(prevState => ({
+      ...prevState,
+      [index]: suggestion
+    }));
+
+    const newMedications = prescription.medications.map((medication, i) => {
+      if (i === index) {
+        return { ...medication, medicine: suggestion };
+      }
+      return medication;
+    });
+    setPrescription(prevState => ({ ...prevState, medications: newMedications }));
+    setSuggestions([]);
+    setTyping(false);  // Stop showing suggestions after selection
+  };
+
+  const handleNextAppointmentChange = (date) => {
+    setPrescription(prevState => ({ 
+      ...prevState, 
+      nextAppointment: date,
+      isNextAppointmentNeeded: date !== null
+    }));
   };
 
   const handleAddMedication = () => {
@@ -229,19 +294,37 @@ const PatientDetail = () => {
                 {prescription.medications.map((medication, index) => (
                   <tr key={index}>
                     <td>
-                      <input
-                        type="text"
-                        name="medicine"
-                        value={medication.medicine}
-                        onChange={(e) => handleInputChange(e, index)}
-                        placeholder="Medicine name"
-                        className="form-control"
-                      />
+                      <div className="autocomplete">
+                        <input
+                          type="text"
+                          name={`medication.medicine`}
+                          value={medication.medicine}
+                          onChange={(e) => handleInputChange(e, index)}
+                          placeholder="Medicine name"
+                          className="form-control"
+                          onBlur={() => setTyping(false)}  // Hide suggestions if input loses focus
+                        />
+                        {typing && suggestions.length > 0 && (
+                          <ul className="suggestions">
+                            {suggestions.map((suggestion, i) => (
+                              <li key={i}>
+                                <label>
+                                  <input 
+                                    type="checkbox" 
+                                    checked={selectedMedicines[index] === suggestion} 
+                                    onChange={() => handleCheckboxChange(suggestion, index)} 
+                                  /> {suggestion}
+                                </label>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
                     </td>
                     <td>
                       <input
                         type="text"
-                        name="dosage"
+                        name={`medication.dosage`}
                         value={medication.dosage}
                         onChange={(e) => handleInputChange(e, index)}
                         placeholder="e.g., 500mg"
@@ -251,7 +334,7 @@ const PatientDetail = () => {
                     <td>
                       <input
                         type="checkbox"
-                        name="morning"
+                        name={`medication.morning`}
                         checked={medication.morning}
                         onChange={(e) => handleInputChange(e, index)}
                         className="form-check-input"
@@ -260,7 +343,7 @@ const PatientDetail = () => {
                     <td>
                       <input
                         type="checkbox"
-                        name="afternoon"
+                        name={`medication.afternoon`}
                         checked={medication.afternoon}
                         onChange={(e) => handleInputChange(e, index)}
                         className="form-check-input"
@@ -269,7 +352,7 @@ const PatientDetail = () => {
                     <td>
                       <input
                         type="checkbox"
-                        name="night"
+                        name={`medication.night`}
                         checked={medication.night}
                         onChange={(e) => handleInputChange(e, index)}
                         className="form-check-input"
@@ -278,7 +361,7 @@ const PatientDetail = () => {
                     <td>
                       <input
                         type="text"
-                        name="duration"
+                        name={`medication.duration`}
                         value={medication.duration}
                         onChange={(e) => handleInputChange(e, index)}
                         placeholder="e.g., 7 days"
@@ -287,44 +370,53 @@ const PatientDetail = () => {
                     </td>
                     <td>
                       <select
-                        name="timing"
+                        name={`medication.timing`}
                         value={medication.timing}
                         onChange={(e) => handleInputChange(e, index)}
                         className="form-control"
                       >
                         <option value="">Select timing</option>
-                        <option value="before_meals">Before meals</option>
-                        <option value="after_meals">After meals</option>
-                        <option value="with_meals">With meals</option>
-                        <option value="bedtime">Bedtime</option>
+                        <option value="Before Meal">Before Meal</option>
+                        <option value="After Meal">After Meal</option>
                       </select>
                     </td>
                     <td>
-                      <button type="button" onClick={() => handleRemoveMedication(index)} className="btn btn-danger btn-sm">
-                        &times;
-                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveMedication(index)}
+                        className="btn btn-danger btn-sm"
+                      >Remove</button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+
+            <button type="button" onClick={handleAddMedication} className="btn btn-primary btn-sm">Add Medication</button>
           </div>
 
-          <button type="button" onClick={handleAddMedication} className="btn btn-primary btn-add-medication mb-3">
-            + Add Medication
-          </button>
-
-          {/* New Next Appointment Section */}
           <div className="form-group">
-            <label>Next Appointment:</label>
-            <input
-              type="date"
-              name="nextAppointment"
-              value={prescription.nextAppointment}
-              onChange={handleInputChange}
-              className="form-control"
-            />
+            <label>
+              <input
+                type="checkbox"
+                name="isNextAppointmentNeeded"
+                checked={prescription.isNextAppointmentNeeded}
+                onChange={handleInputChange}
+              /> Next Appointment Needed
+            </label>
           </div>
+
+          {prescription.isNextAppointmentNeeded && (
+            <div className="form-group">
+              <label>Next Appointment:</label>
+              <DatePicker
+                selected={prescription.nextAppointment}
+                onChange={handleNextAppointmentChange}
+                className="form-control"
+                dateFormat="dd/MM/yyyy"
+              />
+            </div>
+          )}
 
           <div className="form-group">
             <label>Remarks:</label>
@@ -333,10 +425,11 @@ const PatientDetail = () => {
               value={prescription.remarks}
               onChange={handleInputChange}
               className="form-control"
+              rows="3"
             />
           </div>
 
-          <button type="submit" className="btn btn-success">Submit Prescription</button>
+          <button type="submit" className="btn btn-success">Submit</button>
         </form>
       </div>
     </div>
