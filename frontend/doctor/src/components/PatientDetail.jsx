@@ -391,27 +391,24 @@ const PatientDetail = () => {
           </div>
 
           {prescription.isNextAppointmentNeeded && (
-            <div className="form-group next-appointment-row">
-              <div>
-                <label>Next Appointment Date:</label>
-                <DatePicker
-                  selected={prescription.nextAppointment}
-                  onChange={handleNextAppointmentChange}
-                  className="form-control"
-                  dateFormat="dd/MM/yyyy"
-                />
-              </div>
-              <div>
-                <label>Time:</label>
-                <input
-                  type="time"
-                  value={prescription.nextAppointmentTime || ''}
-                  onChange={handleNextAppointmentTimeChange}
-                  className="form-control"
-                />
-              </div>
-            </div>
-          )}
+  <div className="form-group next-appointment-row">
+    <div>
+      <label>Next Appointment Date and Time:</label>
+      <DatePicker
+        selected={prescription.nextAppointment}
+        onChange={handleNextAppointmentChange}
+        className="form-control"
+        showTimeSelect
+        timeFormat="HH:mm"
+        timeIntervals={15}  // You can adjust the time intervals if needed
+        dateFormat="dd/MM/yyyy h:mm aa"
+        placeholderText="Select date and time"
+      />
+    </div>
+  </div>
+)}
+
+        
 
           <div className="form-group">
             <label>Remarks:</label>
