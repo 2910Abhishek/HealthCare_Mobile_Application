@@ -98,8 +98,6 @@
 //   )
 // }
 // export default PatientDetail;
-
-
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import DatePicker from 'react-datepicker';
@@ -114,7 +112,7 @@ const PatientDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
-  const [typing, setTyping] = useState(false);
+  const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(null);
   const [selectedMedicines, setSelectedMedicines] = useState({});
 
   const [prescription, setPrescription] = useState({
@@ -130,6 +128,7 @@ const PatientDetail = () => {
     }],
     remarks: '',
     nextAppointment: null,
+    nextAppointmentTime: null,
     isNextAppointmentNeeded: true
   });
 
@@ -152,7 +151,8 @@ const PatientDetail = () => {
       setPrescription(prevState => ({ 
         ...prevState, 
         isNextAppointmentNeeded: checked,
-        nextAppointment: checked ? prevState.nextAppointment : null
+        nextAppointment: checked ? prevState.nextAppointment : null,
+        nextAppointmentTime: checked ? prevState.nextAppointmentTime : null
       }));
     } else if (name.startsWith('medication')) {
       const newMedications = prescription.medications.map((medication, i) => {
@@ -166,16 +166,16 @@ const PatientDetail = () => {
       });
       setPrescription(prevState => ({ ...prevState, medications: newMedications }));
 
-      // Show suggestions only when typing in the medicine field
       if (name.endsWith('medicine')) {
-        setTyping(true);
         if (value.length > 0) {
           const filteredSuggestions = medicines.filter(med => 
-            med.toLowerCase().startsWith(value.toLowerCase())  // Filter only medicines that start with the input value
+            med.toLowerCase().startsWith(value.toLowerCase())
           );
           setSuggestions(filteredSuggestions);
+          setActiveSuggestionIndex(index);
         } else {
-          setSuggestions([]);  // Clear suggestions if the input is empty
+          setSuggestions([]);
+          setActiveSuggestionIndex(null);
         }
       }
     }
@@ -190,24 +190,7 @@ const PatientDetail = () => {
     });
     setPrescription(prevState => ({ ...prevState, medications: newMedications }));
     setSuggestions([]);
-    setTyping(false);  // Stop showing suggestions after selection
-  };
-
-  const handleCheckboxChange = (suggestion, index) => {
-    setSelectedMedicines(prevState => ({
-      ...prevState,
-      [index]: suggestion
-    }));
-
-    const newMedications = prescription.medications.map((medication, i) => {
-      if (i === index) {
-        return { ...medication, medicine: suggestion };
-      }
-      return medication;
-    });
-    setPrescription(prevState => ({ ...prevState, medications: newMedications }));
-    setSuggestions([]);
-    setTyping(false);  // Stop showing suggestions after selection
+    setActiveSuggestionIndex(null);
   };
 
   const handleNextAppointmentChange = (date) => {
@@ -215,6 +198,13 @@ const PatientDetail = () => {
       ...prevState, 
       nextAppointment: date,
       isNextAppointmentNeeded: date !== null
+    }));
+  };
+
+  const handleNextAppointmentTimeChange = (e) => {
+    setPrescription(prevState => ({
+      ...prevState,
+      nextAppointmentTime: e.target.value
     }));
   };
 
@@ -302,19 +292,13 @@ const PatientDetail = () => {
                           onChange={(e) => handleInputChange(e, index)}
                           placeholder="Medicine name"
                           className="form-control"
-                          onBlur={() => setTyping(false)}  // Hide suggestions if input loses focus
+                          onBlur={() => setTimeout(() => setActiveSuggestionIndex(null), 200)}
                         />
-                        {typing && suggestions.length > 0 && (
+                        {activeSuggestionIndex === index && suggestions.length > 0 && (
                           <ul className="suggestions">
                             {suggestions.map((suggestion, i) => (
-                              <li key={i}>
-                                <label>
-                                  <input 
-                                    type="checkbox" 
-                                    checked={selectedMedicines[index] === suggestion} 
-                                    onChange={() => handleCheckboxChange(suggestion, index)} 
-                                  /> {suggestion}
-                                </label>
+                              <li key={i} onClick={() => handleSuggestionClick(suggestion, index)}>
+                                {suggestion}
                               </li>
                             ))}
                           </ul>
@@ -407,14 +391,25 @@ const PatientDetail = () => {
           </div>
 
           {prescription.isNextAppointmentNeeded && (
-            <div className="form-group">
-              <label>Next Appointment:</label>
-              <DatePicker
-                selected={prescription.nextAppointment}
-                onChange={handleNextAppointmentChange}
-                className="form-control"
-                dateFormat="dd/MM/yyyy"
-              />
+            <div className="form-group next-appointment-row">
+              <div>
+                <label>Next Appointment Date:</label>
+                <DatePicker
+                  selected={prescription.nextAppointment}
+                  onChange={handleNextAppointmentChange}
+                  className="form-control"
+                  dateFormat="dd/MM/yyyy"
+                />
+              </div>
+              <div>
+                <label>Time:</label>
+                <input
+                  type="time"
+                  value={prescription.nextAppointmentTime || ''}
+                  onChange={handleNextAppointmentTimeChange}
+                  className="form-control"
+                />
+              </div>
             </div>
           )}
 

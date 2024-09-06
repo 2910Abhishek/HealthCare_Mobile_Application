@@ -256,4 +256,20 @@ input[type="date"], input[type="time"] {
       .suggestions li:hover {
         background-color: #f0f0f0;
       }
+      .medication-table {
+        width: 100%;
+      }
+      
+      .medication-table td {
+        padding: 5px;
+        vertical-align: top;
+      }
+      .next-appointment-row {
+        display: flex;
+        gap: 20px;
+      }
+      
+      .next-appointment-row > div {
+        flex: 1;
+      }
 }
