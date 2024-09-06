@@ -1,14 +1,11 @@
 import react from "react";
 export const navLinks = [
     {
-      id: "Pateinthistory",
-      title: "Pateinthistory",
+      id: "Add Medicine",
+      title: "Add Medicine",
     },
 
-    {
-      id: "Scheduled",
-      title: "Scheduled",
-    },
+  
 
   ];
   

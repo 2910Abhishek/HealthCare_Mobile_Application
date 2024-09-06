@@ -242,7 +242,7 @@ const PatientDetail = () => {
 
   return (
     <div className="container">
-      <h1>Patient Details: {patient.name}</h1>
+      <h1>Patient Name: {patient.name}</h1>
       <div className="section-content">
         <div className="patient-info">
           <p><strong>Gender:</strong> {patient.gender}</p>
