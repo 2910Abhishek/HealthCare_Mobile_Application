@@ -2,7 +2,7 @@ import 'package:aarogya/screens/bookAppointmentScreen.dart';
 import 'package:aarogya/screens/homescreen.dart';
 import 'package:aarogya/screens/loginscreen.dart';
 import 'package:aarogya/screens/onboardingscreen.dart';
-import 'package:aarogya/screens/profilescreen.dart';
+import 'package:aarogya/screens/dashboard.dart';
 import 'package:aarogya/screens/signUpScreen.dart';
 import 'package:aarogya/screens/tabsscreen.dart';
 import 'package:aarogya/utils/colors.dart';
@@ -39,7 +39,7 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LogInScreen(),
         '/signup': (context) => const SignUpScreen(),
         '/home': (context) => const TabsScreen(),
-        '/profile': (context) => const ProfileScreen(),
+        '/profile': (context) => ProfileScreen(),
       },
       home: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),

@@ -1,7 +1,10 @@
 import 'package:aarogya/screens/dashboard.dart';
 import 'package:aarogya/screens/healthtracker.dart';
 import 'package:aarogya/screens/homescreen.dart';
+// import 'package:aarogya/screens/profilescreen.dart';
 import 'package:aarogya/screens/recordscreen.dart';
+import 'package:aarogya/screens/dashboard.dart';
+
 import 'package:flutter/material.dart';
 
 class TabsScreen extends StatefulWidget {
@@ -33,7 +36,7 @@ class _TabsScreenState extends State<TabsScreen> {
       activePageTitle = 'Track Changes';
     }
     if (_selectedPageIndex == 3) {
-      activePage = DashBoardScreen();
+      activePage = ProfileScreen();
       activePageTitle = 'DashBoard';
     }
     return Scaffold(
