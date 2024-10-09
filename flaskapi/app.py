@@ -13,7 +13,7 @@ db = firestore.client()
 # Function to calculate travel time using OpenStreetMap API
 def calculate_travel_time(origin, destination):
     open_street_map_url = f"https://api.openrouteservice.org/v2/directions/driving-car"
-    api_key = '5b3ce3597851110001cf6248db523009310242dfb5e95e5cb0e24285'
+    api_key = 'apikey'
     headers = {'Authorization': api_key, 'Content-Type': 'application/json'}
     
     data = {
