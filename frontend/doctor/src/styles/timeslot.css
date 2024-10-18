@@ -1,0 +1,162 @@
+.time-slot-manager {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+  
+  .alert {
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+  }
+  
+  .alert.error {
+    background-color: #fee2e2;
+    color: #991b1b;
+  }
+  
+  .alert.success {
+    background-color: #d1fae5;
+    color: #065f46;
+  }
+  
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  
+  @media (min-width: 768px) {
+    .grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  
+  .card {
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 16px;
+  }
+  
+  .card h2 {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 16px;
+  }
+  
+  input[type="date"] {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+  }
+  
+  .time-slots {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  
+  @media (min-width: 640px) {
+    .time-slots {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  
+  .time-slot {
+    padding: 12px;
+    font-size: 0.875rem;
+    border-radius: 8px;
+    background-color: #f3f4f6;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .time-slot:hover {
+    background-color: #e5e7eb;
+  }
+  
+  .time-slot.active {
+    background-color: #10b981;
+    color: white;
+  }
+  
+  .time-slot.active:hover {
+    background-color: #059669;
+  }
+  
+  .time-slot.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  .save-button-container {
+    margin-top: 24px;
+  }
+  
+  .save-button {
+    width: 100%;
+    background-color: #3b82f6;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .save-button:hover {
+    background-color: #2563eb;
+  }
+  
+  .save-button.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  .summary {
+    margin-top: 32px;
+  }
+  
+  .summary-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .summary-item {
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 8px;
+  }
+  
+  .summary-date {
+    font-weight: 500;
+  }
+  
+  .summary-slots {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  
+  .summary-slot {
+    background-color: #d1fae5;
+    color: #065f46;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.875rem;
+  }
+  .page-container {
+    padding: 20px;
+    margin-top: 60px; /* Adjust based on your navbar height */
+  }
+  
+  .page-title {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #333;
+  }

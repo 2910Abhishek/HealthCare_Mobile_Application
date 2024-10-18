@@ -3,11 +3,14 @@
 /* Main container styling */
 .container {
     max-width: 1200px;
-    margin: 0 auto;
+    margin: 80px auto 20px; /* Increased top margin to account for navbar */
     padding: 20px;
     background-color: #f9f9f9;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    position: relative; /* Add this to ensure proper stacking context */
+    z-index: 1; /* Add this to ensure proper stacking with navbar */
+
 }
 
 /* Heading styles */
@@ -179,9 +182,9 @@ input[type="date"], input[type="time"] {
 
 @media (max-width: 768px) {
     .container {
+        margin-top: 70px; /* Slightly less margin for mobile screens */
         padding: 10px;
     }
-
     .medication-table {
         font-size: 12px;
     }
@@ -205,6 +208,9 @@ input[type="date"], input[type="time"] {
 }
 
 @media (max-width: 576px) {
+    .container {
+        margin-top: 60px; /* Even less margin for very small screens */
+    }
     .medication-table {
         font-size: 11px;
     }
