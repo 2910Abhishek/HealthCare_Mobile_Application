@@ -183,7 +183,6 @@
 
 // export default TimeSlotManager;
 
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from './authcontext';
 import '../styles/timeslot.css';
@@ -205,6 +204,12 @@ const TimeSlotManager = () => {
 
   const formatDate = (date) => {
     return date.toISOString().split('T')[0];
+  };
+
+  const isPreviousDate = (date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return new Date(date) < today;
   };
 
   useEffect(() => {
@@ -231,11 +236,17 @@ const TimeSlotManager = () => {
   };
 
   const handleDateSelect = (date) => {
-    setSelectedDate(date);
+    setSelectedDate(new Date(date));
     setSuccessMessage('');
+    setError(null);
   };
 
   const handleSlotToggle = (slot) => {
+    if (isPreviousDate(selectedDate)) {
+      setError('Cannot modify slots for previous dates. Please select today or a future date.');
+      return;
+    }
+    
     const dateKey = formatDate(selectedDate);
     setAvailableSlots(prev => ({
       ...prev,
@@ -247,6 +258,11 @@ const TimeSlotManager = () => {
   };
 
   const handleSaveSchedule = async () => {
+    if (isPreviousDate(selectedDate)) {
+      setError('Cannot save slots for previous dates. Please select today or a future date.');
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -284,6 +300,7 @@ const TimeSlotManager = () => {
   };
 
   const currentDateSlots = availableSlots[formatDate(selectedDate)] || {};
+  const isDatePrevious = isPreviousDate(selectedDate);
 
   return (
     <div className="page-container">
@@ -308,20 +325,24 @@ const TimeSlotManager = () => {
             <input
               type="date"
               value={formatDate(selectedDate)}
-              onChange={(e) => handleDateSelect(new Date(e.target.value))}
-              min={formatDate(new Date())}
+              onChange={(e) => handleDateSelect(e.target.value)}
             />
           </div>
 
           <div className="card">
             <h2>Available Time Slots for {selectedDate.toLocaleDateString()}</h2>
+            {isDatePrevious && (
+              <div className="view-only-notice">
+                Viewing previous date - modifications disabled
+              </div>
+            )}
             <div className="time-slots">
               {timeSlots.map(slot => (
                 <button
                   key={slot}
                   onClick={() => handleSlotToggle(slot)}
-                  disabled={loading}
-                  className={`time-slot ${currentDateSlots[slot] ? 'active' : ''} ${loading ? 'disabled' : ''}`}
+                  disabled={loading || isDatePrevious}
+                  className={`time-slot ${currentDateSlots[slot] ? 'active' : ''} ${(loading || isDatePrevious) ? 'disabled' : ''}`}
                 >
                   {slot}
                 </button>
@@ -331,8 +352,8 @@ const TimeSlotManager = () => {
             <div className="save-button-container">
               <button
                 onClick={handleSaveSchedule}
-                disabled={loading}
-                className={`save-button ${loading ? 'disabled' : ''}`}
+                disabled={loading || isDatePrevious}
+                className={`save-button ${(loading || isDatePrevious) ? 'disabled' : ''}`}
               >
                 {loading ? 'Saving...' : 'Save Available Slots'}
               </button>
