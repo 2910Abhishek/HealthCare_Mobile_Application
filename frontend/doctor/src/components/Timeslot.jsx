@@ -277,16 +277,35 @@ const TimeSlotManager = () => {
           .map(([slot]) => slot)
       };
 
-      const response = await fetch('http://localhost:5000/add-time-slots', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(scheduleData)
-      });
+      // Call both APIs in parallel
+      const [webResponse, flutterResponse] = await Promise.all([
+        // Original API call
+        fetch('http://localhost:5000/add-time-slots', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(scheduleData)
+        }),
+        
+        // Flutter API call
+        fetch('http://localhost:5000/api/flutter/doctor-slots', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            doctorId: localStorage.getItem('doctor_id'),
+            date: dateKey,
+            availableSlots: Object.entries(selectedSlots)
+              .filter(([_, isAvailable]) => isAvailable)
+              .map(([slot]) => slot)
+          })
+        })
+      ]);
 
-      if (response.ok) {
-        const result = await response.json();
+      if (webResponse.ok && flutterResponse.ok) {
+        const result = await webResponse.json();
         setSuccessMessage('Schedule saved successfully!');
         await loadDoctorSlots();
       } else {
@@ -301,7 +320,6 @@ const TimeSlotManager = () => {
 
   const currentDateSlots = availableSlots[formatDate(selectedDate)] || {};
   const isDatePrevious = isPreviousDate(selectedDate);
-
   return (
     <div className="page-container">
       <div className="time-slot-manager">
