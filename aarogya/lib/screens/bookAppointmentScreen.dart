@@ -1,3 +1,7 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -6,13 +10,12 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
-import 'dart:io';
 import 'package:path_provider/path_provider.dart';
-import 'package:aarogya/screens/DoctorScreen.dart';
 import 'package:aarogya/utils/colors.dart';
 import 'package:aarogya/widgets/customButton.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:http/http.dart' as http;
 
 class BookAppointmentScreen extends StatefulWidget {
   final String doctorName;
@@ -38,7 +41,6 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   TimeOfDay selectedTime = TimeOfDay(hour: 8, minute: 30);
   FirebaseAuth _auth = FirebaseAuth.instance;
   bool _isLoading = false;
-  int count = 0;
   TextEditingController _patientNameController = TextEditingController();
 
   @override
@@ -313,6 +315,21 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
       bool emailSent = await _sendEmail(file.path);
       print('Email sent: $emailSent');
 
+      // Prepare the data to be sent to the API
+      final data = {
+        'name': _auth.currentUser!.displayName,
+        'gender': 'Not Specified',
+        'age': 0,
+        'reporting_time':
+            "${DateFormat('yyyy-MM-dd').format(selectedDate)} ${selectedTime.format(context)}",
+        'patient_history_url': '',
+        'lab_report_url': '',
+        'doctor_id': 1,
+      };
+
+      // Send the data to the API
+      await _sendDataToAPI(data);
+
       // Save appointment details to Firestore
       await FirebaseFirestore.instance.collection('appointments').add({
         'appointmentId': appointmentId,
@@ -325,69 +342,42 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
         'userId': _auth.currentUser!.uid,
       });
 
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text("Appointment Booked"),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Your appointment has been booked for ${DateFormat('yyyy-MM-dd').format(selectedDate)} at ${selectedTime.format(context)}.",
-                ),
-                SizedBox(height: 10),
-                Text(
-                  emailSent
-                      ? "A confirmation PDF has been sent to your email."
-                      : "We couldn't send the confirmation email. Please contact support.",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: emailSent ? Colors.green : Colors.red,
-                  ),
-                ),
-              ],
-            ),
-            actions: <Widget>[
-              TextButton(
-                child: Text("OK"),
-                onPressed: () {
-                  Navigator.pushNamedAndRemoveUntil(
-                    context,
-                    '/home',
-                    (route) => false,
-                  );
-                },
-              ),
-            ],
-          );
-        },
-      );
+      _showSuccessDialog(emailSent);
     } catch (e) {
       print('Error: $e');
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text("Error"),
-            content: Text(
-                "An error occurred while booking the appointment. Please try again later."),
-            actions: <Widget>[
-              TextButton(
-                child: Text("OK"),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
+      _showErrorDialog(e.toString());
     } finally {
       setState(() {
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _sendDataToAPI(Map<String, dynamic> data) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse('http://192.168.46.175:5000/add-patient'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(data),
+          )
+          .timeout(Duration(seconds: 10)); // Add a 10-second timeout
+
+      if (response.statusCode != 200) {
+        throw Exception(
+            'Failed to book appointment through API: ${response.statusCode}');
+      }
+    } on SocketException catch (e) {
+      print('SocketException: $e');
+      throw Exception(
+          'Unable to connect to the server. Please check your network connection and try again.');
+    } on TimeoutException catch (e) {
+      print('TimeoutException: $e');
+      throw Exception(
+          'Connection timed out. The server took too long to respond.');
+    } catch (e) {
+      print('Unexpected error: $e');
+      throw Exception('An unexpected error occurred. Please try again later.');
     }
   }
 
@@ -399,7 +389,6 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
       gapless: false,
     ).toImageData(200.0);
 
-    // Format the time as a string
     final formattedTime =
         "${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}";
 
@@ -417,7 +406,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
               pw.Text('Patient Name: ${_auth.currentUser!.displayName}'),
               pw.Text('Doctor: ${widget.doctorName}'),
               pw.Text('Date: ${DateFormat('yyyy-MM-dd').format(selectedDate)}'),
-              pw.Text('Time: $formattedTime'), // Use the formatted time string
+              pw.Text('Time: $formattedTime'),
               pw.Text('Speciality: ${widget.speciality}'),
               pw.Text('Hospital: ${widget.hospitalName}'),
               pw.SizedBox(height: 20),
@@ -448,5 +437,68 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
       print('Error sending email: $e');
       return false;
     }
+  }
+
+  void _showSuccessDialog(bool emailSent) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Appointment Booked"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Your appointment has been booked for ${DateFormat('yyyy-MM-dd').format(selectedDate)} at ${selectedTime.format(context)}.",
+              ),
+              SizedBox(height: 10),
+              Text(
+                emailSent
+                    ? "A confirmation PDF has been sent to your email."
+                    : "We couldn't send the confirmation email. Please contact support.",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: emailSent ? Colors.green : Colors.red,
+                ),
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text("OK"),
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  '/home',
+                  (route) => false,
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showErrorDialog(String errorMessage) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Error"),
+          content: Text(errorMessage),
+          actions: <Widget>[
+            TextButton(
+              child: Text("OK"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 }
