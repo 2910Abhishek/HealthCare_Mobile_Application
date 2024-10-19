@@ -1,5 +1,3 @@
-
-
 // import React, { useState } from 'react';
 // import "../styles/login.css";
 // import {
@@ -86,36 +84,36 @@
 //             <MDBCardBody className='p-5'>
 //               <h2 className="fw-bold mb-5 text-center">Welcome Back</h2>
 //               <p className="text-muted mb-4 text-center">Please enter your login details</p>
-              
-//               <MDBInput 
-//                 wrapperClass='mb-4' 
-//                 placeholder='Email Address' 
-//                 id='emailInput' 
-//                 type='email' 
+
+//               <MDBInput
+//                 wrapperClass='mb-4'
+//                 placeholder='Email Address'
+//                 id='emailInput'
+//                 type='email'
 //                 size='lg'
 //                 value={email}
 //                 onChange={handleInputChange}
 //                 className={fieldErrors.email ? 'is-invalid' : ''}
 //               />
 //               {fieldErrors.email && <p className="text-danger">{fieldErrors.email}</p>}
-              
-//               <MDBInput 
-//                 wrapperClass='mb-4' 
-//                 placeholder='Password' 
-//                 id='passwordInput' 
-//                 type='password' 
+
+//               <MDBInput
+//                 wrapperClass='mb-4'
+//                 placeholder='Password'
+//                 id='passwordInput'
+//                 type='password'
 //                 size='lg'
 //                 value={password}
 //                 onChange={handleInputChange}
 //                 className={fieldErrors.password ? 'is-invalid' : ''}
 //               />
 //               {fieldErrors.password && <p className="text-danger">{fieldErrors.password}</p>}
-              
+
 //               <div className="d-flex justify-content-between mb-4">
 //                 <a href="#!" className="text-primary">Forgot password?</a>
 //               </div>
-//               <button 
-//                 className="w-2500 mb-4 btn-primary" 
+//               <button
+//                 className="w-2500 mb-4 btn-primary"
 //                 size='lg'
 //                 onClick={handleLogin}
 //               >
@@ -132,7 +130,6 @@
 // }
 
 // export default Login;
-
 
 // import React, { useState } from 'react';
 // import { useAuth } from './authcontext';
@@ -224,36 +221,36 @@
 //             <MDBCardBody className='p-5'>
 //               <h2 className="fw-bold mb-5 text-center">Welcome Back</h2>
 //               <p className="text-muted mb-4 text-center">Please enter your login details</p>
-              
-//               <MDBInput 
-//                 wrapperClass='mb-4' 
-//                 placeholder='Email Address' 
-//                 id='emailInput' 
-//                 type='email' 
+
+//               <MDBInput
+//                 wrapperClass='mb-4'
+//                 placeholder='Email Address'
+//                 id='emailInput'
+//                 type='email'
 //                 size='lg'
 //                 value={email}
 //                 onChange={handleInputChange}
 //                 className={fieldErrors.email ? 'is-invalid' : ''}
 //               />
 //               {fieldErrors.email && <p className="text-danger">{fieldErrors.email}</p>}
-              
-//               <MDBInput 
-//                 wrapperClass='mb-4' 
-//                 placeholder='Password' 
-//                 id='passwordInput' 
-//                 type='password' 
+
+//               <MDBInput
+//                 wrapperClass='mb-4'
+//                 placeholder='Password'
+//                 id='passwordInput'
+//                 type='password'
 //                 size='lg'
 //                 value={password}
 //                 onChange={handleInputChange}
 //                 className={fieldErrors.password ? 'is-invalid' : ''}
 //               />
 //               {fieldErrors.password && <p className="text-danger">{fieldErrors.password}</p>}
-              
+
 //               <div className="d-flex justify-content-between mb-4">
 //                 <a href="#!" className="text-primary">Forgot password?</a>
 //               </div>
-//               <button 
-//                 className="w-100 mb-4 btn btn-primary" 
+//               <button
+//                 className="w-100 mb-4 btn btn-primary"
 //                 size='lg'
 //                 onClick={handleLogin}
 //               >
@@ -270,7 +267,6 @@
 // }
 
 // export default Login;
-
 
 // import React, { useState } from 'react';
 // import { useAuth } from './authcontext';
@@ -328,7 +324,7 @@
 //       const data = await response.json();
 
 //       if (response.ok) {
-//         login(data.name);  
+//         login(data.name);
 //         console.log("in the login function",data.name)// Pass the user's name to the login function
 //         navigate('/dashboard');
 //       } else {
@@ -363,36 +359,36 @@
 //             <MDBCardBody className='p-5'>
 //               <h2 className="fw-bold mb-5 text-center">Welcome Back</h2>
 //               <p className="text-muted mb-4 text-center">Please enter your login details</p>
-              
-//               <MDBInput 
-//                 wrapperClass='mb-4' 
-//                 placeholder='Email Address' 
-//                 id='emailInput' 
-//                 type='email' 
+
+//               <MDBInput
+//                 wrapperClass='mb-4'
+//                 placeholder='Email Address'
+//                 id='emailInput'
+//                 type='email'
 //                 size='lg'
 //                 value={email}
 //                 onChange={handleInputChange}
 //                 className={fieldErrors.email ? 'is-invalid' : ''}
 //               />
 //               {fieldErrors.email && <p className="text-danger">{fieldErrors.email}</p>}
-              
-//               <MDBInput 
-//                 wrapperClass='mb-4' 
-//                 placeholder='Password' 
-//                 id='passwordInput' 
-//                 type='password' 
+
+//               <MDBInput
+//                 wrapperClass='mb-4'
+//                 placeholder='Password'
+//                 id='passwordInput'
+//                 type='password'
 //                 size='lg'
 //                 value={password}
 //                 onChange={handleInputChange}
 //                 className={fieldErrors.password ? 'is-invalid' : ''}
 //               />
 //               {fieldErrors.password && <p className="text-danger">{fieldErrors.password}</p>}
-              
+
 //               <div className="d-flex justify-content-between mb-4">
 //                 <a href="#!" className="text-primary">Forgot password?</a>
 //               </div>
-//               <button 
-//                 className="w-100 mb-4 btn btn-primary" 
+//               <button
+//                 className="w-100 mb-4 btn btn-primary"
 //                 size='lg'
 //                 onClick={handleLogin}
 //               >
@@ -410,10 +406,9 @@
 
 // export default Login;
 
-
-import React, { useState } from 'react';
-import { useAuth } from './authcontext';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { useAuth } from "./authcontext";
+import { useNavigate } from "react-router-dom";
 import {
   MDBContainer,
   MDBRow,
@@ -421,15 +416,15 @@ import {
   MDBCard,
   MDBCardBody,
   MDBInput,
-} from 'mdb-react-ui-kit';
+} from "mdb-react-ui-kit";
 
 function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
   });
 
   const { login } = useAuth();
@@ -437,29 +432,29 @@ function Login() {
 
   const handleLogin = async () => {
     let isValid = true;
-    const newFieldErrors = { email: '', password: '' };
+    const newFieldErrors = { email: "", password: "" };
 
     if (!email) {
-      newFieldErrors.email = 'Email is required';
+      newFieldErrors.email = "Email is required";
       isValid = false;
     }
     if (!password) {
-      newFieldErrors.password = 'Password is required';
+      newFieldErrors.password = "Password is required";
       isValid = false;
     }
 
     setFieldErrors(newFieldErrors);
 
     if (!isValid) {
-      setError('Please fill in all required fields.');
+      setError("Please fill in all required fields.");
       return;
     }
 
     try {
-      const response = await fetch('http://localhost:5000/login', {
-        method: 'POST',
+      const response = await fetch("http://localhost:5000/login", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
       });
@@ -469,74 +464,82 @@ function Login() {
       if (response.ok) {
         // Store the doctor_id in localStorage
         if (data.doctor_id) {
-          localStorage.setItem('doctor_id', data.doctor_id);
+          localStorage.setItem("doctor_id", data.doctor_id);
         }
-        login(data.name);  
+        login(data.name);
         console.log("in the login function", data.name);
-        navigate('/dashboard');
+        navigate("/dashboard");
       } else {
         setError(data.message);
       }
     } catch (err) {
-      console.error('Error:', err);
-      setError('Something went wrong');
+      console.error("Error:", err);
+      setError("Something went wrong");
     }
   };
 
   const handleInputChange = (e) => {
     const { id, value } = e.target;
-    if (id === 'emailInput') {
+    if (id === "emailInput") {
       setEmail(value);
       if (value) {
-        setFieldErrors((prevErrors) => ({ ...prevErrors, email: '' }));
+        setFieldErrors((prevErrors) => ({ ...prevErrors, email: "" }));
       }
-    } else if (id === 'passwordInput') {
+    } else if (id === "passwordInput") {
       setPassword(value);
       if (value) {
-        setFieldErrors((prevErrors) => ({ ...prevErrors, password: '' }));
+        setFieldErrors((prevErrors) => ({ ...prevErrors, password: "" }));
       }
     }
   };
 
   return (
     <MDBContainer fluid className="login-container">
-      <MDBRow className='w-100'>
+      <MDBRow className="w-100">
         <MDBCol className="d-flex justify-content-center align-items-center">
-          <MDBCard className='login-card'>
-            <MDBCardBody className='p-5'>
+          <MDBCard className="login-card">
+            <MDBCardBody className="p-5">
               <h2 className="fw-bold mb-5 text-center">Welcome Back</h2>
-              <p className="text-muted mb-4 text-center">Please enter your login details</p>
-              
-              <MDBInput 
-                wrapperClass='mb-4' 
-                placeholder='Email Address' 
-                id='emailInput' 
-                type='email' 
-                size='lg'
+              <p className="text-muted mb-4 text-center">
+                Please enter your login details
+              </p>
+
+              <MDBInput
+                wrapperClass="mb-4"
+                placeholder="Email Address"
+                id="emailInput"
+                type="email"
+                size="lg"
                 value={email}
                 onChange={handleInputChange}
-                className={fieldErrors.email ? 'is-invalid' : ''}
+                className={fieldErrors.email ? "is-invalid" : ""}
               />
-              {fieldErrors.email && <p className="text-danger">{fieldErrors.email}</p>}
-              
-              <MDBInput 
-                wrapperClass='mb-4' 
-                placeholder='Password' 
-                id='passwordInput' 
-                type='password' 
-                size='lg'
+              {fieldErrors.email && (
+                <p className="text-danger">{fieldErrors.email}</p>
+              )}
+
+              <MDBInput
+                wrapperClass="mb-4"
+                placeholder="Password"
+                id="passwordInput"
+                type="password"
+                size="lg"
                 value={password}
                 onChange={handleInputChange}
-                className={fieldErrors.password ? 'is-invalid' : ''}
+                className={fieldErrors.password ? "is-invalid" : ""}
               />
-              {fieldErrors.password && <p className="text-danger">{fieldErrors.password}</p>}
-              
+              {fieldErrors.password && (
+                <p className="text-danger">{fieldErrors.password}</p>
+              )}
+
               <div className="d-flex justify-content-between mb-4">
-                <a href="#!" className="text-primary">Forgot password?</a>
+                <a href="#!" className="text-primary">
+                  Forgot password?
+                </a>
               </div>
-              <button 
-                className="w-100 mb-4 btn btn-primary" 
-                size='lg'
+              <button
+                className="w-100 mb-4 mt-10 btn btn-primary"
+                size="lg"
                 onClick={handleLogin}
               >
                 Sign In

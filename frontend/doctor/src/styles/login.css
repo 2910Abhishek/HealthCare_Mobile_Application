@@ -66,6 +66,7 @@ body {
     border-radius: 2rem!important; /* Remove rounded corners for a rectangular shape */
     transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out !important;
     box-shadow: none !important;
+    margin-top: 20px;
   }
   
   .btn-primary:hover {
