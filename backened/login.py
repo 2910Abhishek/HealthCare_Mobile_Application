@@ -407,7 +407,7 @@ import logging
 import traceback
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:1234@localhost:5432/Doctor'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:1234@localhost:5433/Doctor'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 CORS(app)
@@ -417,6 +417,15 @@ socketio = SocketIO(app, cors_allowed_origins="*", transport='websocket')
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+
+
+class Medicine(db.Model):
+    __tablename__ = 'medicines'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255), nullable=False)
+    doctor_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -463,55 +472,66 @@ def login():
 
 @app.route('/add-patient', methods=['POST'])
 def add_patient():
-    data = request.json
-    new_patient = Patient(
-        name=data.get('name'),
-        gender=data.get('gender'),
-        age=data.get('age'),
-        reporting_time=data.get('reporting_time'),
-        patient_history_url=data.get('patient_history_url'),
-        lab_report_url=data.get('lab_report_url'),
-        doctor_id=data.get('doctor_id')
-    )
+    try:
+        data = request.json
+        new_patient = Patient(
+            name=data.get('name'),
+            gender=data.get('gender'),
+            age=data.get('age'),
+            reporting_time=data.get('reporting_time'),
+            patient_history_url=data.get('patient_history_url'),
+            lab_report_url=data.get('lab_report_url'),
+            doctor_id=data.get('doctor_id')
+        )
 
-    db.session.add(new_patient)
-    db.session.commit()
+        db.session.add(new_patient)
+        db.session.commit()
 
-    doctor = User.query.get(new_patient.doctor_id)
-    patient_data = {
-        'id': new_patient.id,
-        'name': new_patient.name,
-        'gender': new_patient.gender,
-        'age': new_patient.age,
-        'reporting_time': new_patient.reporting_time,
-        'patient_history_url': new_patient.patient_history_url,
-        'lab_report_url': new_patient.lab_report_url,
-        'assigned_doctor': doctor.name
-    }
-    socketio.emit('new_patient', patient_data)
-
-    return jsonify({'message': 'Patient added successfully'})
+        doctor = User.query.get(new_patient.doctor_id)
+        patient_data = {
+            'id': new_patient.id,
+            'name': new_patient.name,
+            'gender': new_patient.gender,
+            'age': new_patient.age,
+            'reporting_time': new_patient.reporting_time,
+            'patient_history_url': new_patient.patient_history_url,
+            'lab_report_url': new_patient.lab_report_url,
+            'assigned_doctor': doctor.name
+        }
+        
+        # Emit the socket event
+        socketio.emit('new_patient', patient_data, namespace='/')
+        
+        return jsonify({'message': 'Patient added successfully', 'patient': patient_data})
+    except Exception as e:
+        print(f"Error adding patient: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/get-patient-data', methods=['GET'])
 def get_patient_data():
-    patients = Patient.query.all()
-    patient_data = []
+    try:
+        patients = Patient.query.all()
+        patient_data = []
 
-    for patient in patients:
-        doctor = User.query.get(patient.doctor_id)
-        patient_data.append({
-            'id': patient.id,
-            'name': patient.name,
-            'gender': patient.gender,
-            'age': patient.age,
-            'reporting_time': patient.reporting_time,
-            'patient_history_url': patient.patient_history_url,
-            'lab_report_url': patient.lab_report_url,
-            'assigned_doctor': doctor.name
-        })
+        for patient in patients:
+            doctor = User.query.get(patient.doctor_id)
+            patient_data.append({
+                'id': patient.id,
+                'name': patient.name,
+                'gender': patient.gender,
+                'age': patient.age,
+                'reporting_time': patient.reporting_time,
+                'patient_history_url': patient.patient_history_url,
+                'lab_report_url': patient.lab_report_url,
+                'assigned_doctor': doctor.name
+            })
 
-    return jsonify(patient_data)
-
+        return jsonify(patient_data)
+    except Exception as e:
+        print(f"Error fetching patients: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+    
+    
 @app.route('/add-time-slots', methods=['POST'])
 def add_time_slots():
     try:
@@ -797,6 +817,138 @@ def init_db():
             logger.info("Created all database tables")
         except Exception as e:
             logger.error(f"Error creating tables: {str(e)}")
+
+@app.route('/api/medicines', methods=['GET'])
+def get_medicines():
+    try:
+        doctor_id = request.args.get('doctorId')
+        
+        if not doctor_id or doctor_id == 'undefined' or doctor_id == 'null':
+            return jsonify({
+                'success': False,
+                'message': 'Valid Doctor ID is required'
+            }), 400
+
+        try:
+            doctor_id = int(doctor_id)
+        except ValueError:
+            return jsonify({
+                'success': False,
+                'message': 'Invalid doctor ID format'
+            }), 400
+
+        medicines = Medicine.query.filter_by(doctor_id=doctor_id).all()
+        
+        medicines_list = [{
+            'id': medicine.id,
+            'name': medicine.name,
+            'doctorId': medicine.doctor_id
+        } for medicine in medicines]
+
+        return jsonify({
+            'success': True,
+            'data': medicines_list
+        })
+
+    except Exception as e:
+        logger.error(f"Error fetching medicines: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'Error fetching medicines: {str(e)}'
+        }), 500
+
+@app.route('/api/medicines', methods=['POST'])
+def add_medicine():
+    try:
+        data = request.json
+        doctor_id = data.get('doctorId')
+        medicine_name = data.get('medicineName')
+
+        if not all([doctor_id, medicine_name]) or doctor_id == 'undefined' or doctor_id == 'null':
+            return jsonify({
+                'success': False,
+                'message': 'Valid doctor ID and medicine name are required'
+            }), 400
+
+        try:
+            doctor_id = int(doctor_id)
+        except ValueError:
+            return jsonify({
+                'success': False,
+                'message': 'Invalid doctor ID format'
+            }), 400
+
+        # Check if medicine already exists for this doctor
+        existing_medicine = Medicine.query.filter_by(
+            name=medicine_name,
+            doctor_id=doctor_id
+        ).first()
+
+        if existing_medicine:
+            return jsonify({
+                'success': False,
+                'message': 'Medicine already exists'
+            }), 403
+
+        new_medicine = Medicine(
+            name=medicine_name,
+            doctor_id=doctor_id
+        )
+        
+        db.session.add(new_medicine)
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'message': 'Medicine added successfully',
+            'data': {
+                'id': new_medicine.id,
+                'name': new_medicine.name,
+                'doctorId': new_medicine.doctor_id
+            }
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error adding medicine: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'Error adding medicine: {str(e)}'
+        }), 500
+@app.route('/api/medicines/search', methods=['GET'])
+def search_medicines():
+    try:
+        query = request.args.get('query', '').lower()
+        doctor_id = request.args.get('doctorId')
+
+        if not doctor_id:
+            return jsonify({
+                'success': False,
+                'message': 'Doctor ID is required'
+            }), 400
+
+        medicines = Medicine.query.filter(
+            db.and_(
+                Medicine.doctor_id == doctor_id,
+                Medicine.name.ilike(f'%{query}%')
+            )
+        ).all()
+
+        medicines_list = [medicine.name for medicine in medicines]
+
+        return jsonify({
+            'success': True,
+            'data': medicines_list
+        })
+
+    except Exception as e:
+        logger.error(f"Error searching medicines: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'Error searching medicines: {str(e)}'
+        }), 500
+        
+        
 
 if __name__ == '__main__':
     with app.app_context():

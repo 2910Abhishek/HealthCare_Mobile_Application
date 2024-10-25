@@ -82,11 +82,12 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('userName', userName);
   }, [isAuthenticated, userName]);
 
-  const login = (name) => {
-    console.log('Login function called with name:', name);
+  const login = (name, doctorId) => {
     setIsAuthenticated(true);
     setUserName(name);
+    localStorage.setItem('doctorId', doctorId);
   };
+  
 
   const logout = () => {
     console.log('Logout function called');
@@ -95,6 +96,7 @@ export const AuthProvider = ({ children }) => {
     // Clear localStorage on logout
     localStorage.removeItem('isAuthenticated');
     localStorage.removeItem('userName');
+    localStorage.removeItem('doctorId');  //
   };
 
   return (

@@ -1,9 +1,17 @@
 import react from "react";
 export const navLinks = [
-    {
-      id: "Add Medicine",
-      title: "Add Medicine",
-    },
+ 
+ 
+      // ... your existing navLinks
+      {
+        id: "manage-medicines",
+        title: "Manage Medicines",
+      },
+      {
+        id: "dashboard",
+        title: "dashboard",
+      },
+
 
   
 
