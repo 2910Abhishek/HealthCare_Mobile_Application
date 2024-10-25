@@ -12,7 +12,12 @@
     z-index: 1; /* Add this to ensure proper stacking with navbar */
 
 }
-
+.header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
 /* Heading styles */
 h1, h2 {
     color: #333;

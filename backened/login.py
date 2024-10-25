@@ -395,7 +395,7 @@
 
 
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask_cors import CORS
@@ -405,6 +405,11 @@ from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.orm import Session
 import logging
 import traceback
+from io import BytesIO
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+import json
+
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:1234@localhost:5433/Doctor'
@@ -456,6 +461,24 @@ class DoctorTimeSlot(db.Model):
     __table_args__ = (
         db.UniqueConstraint('doctor_id', 'date', name='unique_doctor_date'),
     )
+    
+class Prescription(db.Model):
+    __tablename__ = 'prescriptions'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Date, nullable=False)
+    medications = db.Column(JSON, nullable=False)
+    remarks = db.Column(db.Text, nullable=True)
+    next_appointment = db.Column(db.DateTime, nullable=True)
+    next_appointment_time = db.Column(db.Time, nullable=True)
+    doctor_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patient.id'), nullable=False)
+    pdf_data = db.Column(db.LargeBinary, nullable=False)
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+
+    # Relationships
+    doctor = db.relationship('User', backref='prescriptions')
+    patient = db.relationship('Patient', backref='prescriptions')
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -947,6 +970,127 @@ def search_medicines():
             'success': False,
             'message': f'Error searching medicines: {str(e)}'
         }), 500
+        
+
+@app.route('/api/prescriptions', methods=['POST'])
+def create_prescription():
+    try:
+        data = request.json
+        
+        # Generate PDF
+        pdf_buffer = BytesIO()
+        generate_prescription_pdf(pdf_buffer, data)
+        pdf_data = pdf_buffer.getvalue()
+        
+        # Create prescription record
+        new_prescription = Prescription(
+            date=datetime.strptime(data['date'], '%Y-%m-%d').date(),
+            medications=data['medications'],
+            remarks=data.get('remarks'),
+            next_appointment=datetime.strptime(data['nextAppointment'], '%Y-%m-%dT%H:%M:%S.%fZ') if data.get('nextAppointment') else None,
+            next_appointment_time=datetime.strptime(data['nextAppointmentTime'], '%H:%M').time() if data.get('nextAppointmentTime') else None,
+            doctor_id=data['doctorId'],
+            patient_id=data['patientId'],
+            pdf_data=pdf_data
+        )
+        
+        db.session.add(new_prescription)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Prescription created successfully',
+            'data': {
+                'prescriptionId': new_prescription.id,
+                'pdfUrl': f'/api/prescriptions/{new_prescription.id}/pdf'
+            }
+        }), 201
+        
+    except Exception as e:
+        print(f"Error creating prescription: {str(e)}")
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'message': 'Failed to create prescription',
+            'error': str(e)
+        }), 500
+
+@app.route('/api/prescriptions/<int:prescription_id>/pdf', methods=['GET'])
+def get_prescription_pdf(prescription_id):
+    try:
+        prescription = Prescription.query.get_or_404(prescription_id)
+        
+        return send_file(
+            BytesIO(prescription.pdf_data),
+            mimetype='application/pdf',
+            as_attachment=False,
+            download_name=f'prescription_{prescription_id}.pdf'
+        )
+        
+    except Exception as e:
+        print(f"Error serving PDF: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': 'Error serving PDF',
+            'error': str(e)
+        }), 500
+
+def generate_prescription_pdf(buffer, data):
+    c = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+    
+    # Header
+    c.setFont('Helvetica-Bold', 20)
+    c.drawString(width/2 - 100, height - 50, 'Medical Prescription')
+    
+    # Patient Details
+    c.setFont('Helvetica', 12)
+    c.drawString(50, height - 100, f"Patient Name: {data['patientName']}")
+    c.drawString(50, height - 120, f"Age: {data['patientAge']}")
+    c.drawString(50, height - 140, f"Gender: {data['patientGender']}")
+    c.drawString(50, height - 160, f"Date: {data['date']}")
+    
+    # Medications
+    y_position = height - 200
+    c.setFont('Helvetica-Bold', 14)
+    c.drawString(50, y_position, 'Medications:')
+    c.setFont('Helvetica', 12)
+    
+    for i, med in enumerate(data['medications'], 1):
+        y_position -= 20
+        c.drawString(70, y_position, f"{i}. {med['medicine']}")
+        y_position -= 15
+        c.drawString(90, y_position, f"Dosage: {med['dosage']}")
+        y_position -= 15
+        timing = []
+        if med['morning']: timing.append('Morning')
+        if med['afternoon']: timing.append('Afternoon')
+        if med['night']: timing.append('Night')
+        c.drawString(90, y_position, f"Timing: {', '.join(timing)}")
+        y_position -= 15
+        c.drawString(90, y_position, f"Duration: {med['duration']}")
+        y_position -= 15
+        c.drawString(90, y_position, f"Instructions: {med['timing']}")
+        y_position -= 20
+    
+    # Remarks
+    if data.get('remarks'):
+        y_position -= 20
+        c.setFont('Helvetica-Bold', 14)
+        c.drawString(50, y_position, 'Remarks:')
+        c.setFont('Helvetica', 12)
+        y_position -= 20
+        c.drawString(70, y_position, data['remarks'])
+    
+    # Next Appointment
+    if data.get('nextAppointment'):
+        y_position -= 40
+        c.drawString(50, y_position, f"Next Appointment: {data['nextAppointment']}")
+    
+    # Doctor's signature
+    c.drawString(width - 200, 100, f"Dr. {data['doctorName']}")
+    
+    c.save()
         
         
 

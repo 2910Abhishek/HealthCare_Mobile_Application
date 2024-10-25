@@ -504,10 +504,56 @@ const PatientDetail = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Prescription submitted:', prescription);
-    // Here you would typically send the prescription data to your backend
+    
+    try {
+      // Show loading state
+      setLoading(true);
+  
+      const doctorId = localStorage.getItem('doctor_id');
+      const formattedData = {
+        ...prescription,
+        doctorId,
+        patientId: patient.id,
+        patientName: patient.name,
+        patientAge: patient.age,
+        patientGender: patient.gender,
+        doctorName: patient.assigned_doctor
+      };
+  
+      const response = await fetch('http://localhost:5000/api/prescriptions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formattedData)
+      });
+  
+      const data = await response.json();
+  
+      if (data.success) {
+        // Hide loading state
+        setLoading(false);
+        
+        // Show success message
+        alert('Prescription saved successfully!');
+        
+        // Open PDF in new tab
+        window.open(`http://localhost:5000${data.data.pdfUrl}`, '_blank');
+        
+        // Navigate back to patient list
+        navigate('/dashboard');
+      } else {
+        throw new Error(data.message);
+      }
+    } catch (error) {
+      // Hide loading state
+      setLoading(false);
+      
+      console.error('Error submitting prescription:', error);
+      alert('Failed to save prescription. Please try again.');
+    }
   };
 
   if (loading) return <div>Loading patient data...</div>;
