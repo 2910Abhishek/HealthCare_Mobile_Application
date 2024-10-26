@@ -442,7 +442,9 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import "../styles/PatientDetail.css";
-import Medication from './Medication'; // Import the new Medication component
+import Medication from './Medication';
+import PastPrescriptions from './PastPrescriptions'; // Import the new component
+
 
 const PatientDetail = () => {
   const location = useLocation();
@@ -480,6 +482,7 @@ const PatientDetail = () => {
       setLoading(false);
     }
   }, [location.state]);
+
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -638,6 +641,8 @@ const PatientDetail = () => {
           <button type="submit" className="btn btn-success">Submit</button>
         </form>
       </div>
+           {/* Add the PastPrescriptions component */}
+           <PastPrescriptions patientId={patient.id} />
     </div>
   );
 };

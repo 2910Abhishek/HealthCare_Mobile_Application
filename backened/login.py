@@ -1091,6 +1091,36 @@ def generate_prescription_pdf(buffer, data):
     c.drawString(width - 200, 100, f"Dr. {data['doctorName']}")
     
     c.save()
+
+
+@app.route('/api/prescriptions/patient/<int:patient_id>', methods=['GET'])
+def get_patient_prescriptions(patient_id):
+    try:
+        prescriptions = Prescription.query.filter_by(patient_id=patient_id)\
+            .order_by(Prescription.date.desc())\
+            .all()
+        
+        prescription_list = [{
+            'id': p.id,
+            'date': p.date.isoformat(),
+            'medications': p.medications,
+            'remarks': p.remarks,
+            'next_appointment': p.next_appointment.isoformat() if p.next_appointment else None,
+            'doctor_name': User.query.get(p.doctor_id).name  # Assuming you have a User model for doctors
+        } for p in prescriptions]
+        
+        return jsonify({
+            'success': True,
+            'prescriptions': prescription_list
+        })
+        
+    except Exception as e:
+        print(f"Error fetching prescriptions: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': 'Failed to fetch prescriptions',
+            'error': str(e)
+        }), 500
         
         
 
