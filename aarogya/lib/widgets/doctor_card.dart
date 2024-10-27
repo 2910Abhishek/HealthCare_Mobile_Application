@@ -33,6 +33,7 @@ class DoctorCard extends StatelessWidget {
               hospitalName: hospitalName,
               imagePath: imagePath,
               rating: rating,
+              doctorId: 1,
             ),
           ),
         );

@@ -13,6 +13,8 @@ import 'package:aarogya/utils/colors.dart';
 import 'package:aarogya/widgets/customButton.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class BookAppointmentScreen extends StatefulWidget {
   final String doctorName;
@@ -20,6 +22,7 @@ class BookAppointmentScreen extends StatefulWidget {
   final String hospitalName;
   final String imagePath;
   final String rating;
+  final int doctorId; // Add this
 
   BookAppointmentScreen({
     required this.doctorName,
@@ -27,6 +30,7 @@ class BookAppointmentScreen extends StatefulWidget {
     required this.hospitalName,
     required this.rating,
     required this.imagePath,
+    required this.doctorId, // Add this
   });
 
   @override
@@ -186,11 +190,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                           width: double.infinity,
                           child: CustomButton(
                             text: 'Book Appointment',
-                            onPressed: _isLoading
-                                ? null
-                                : () {
-                                    _bookAppointment();
-                                  },
+                            onPressed: _isLoading ? null : _bookAppointment,
                           ),
                         ),
                       ],
@@ -287,6 +287,28 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
     });
 
     try {
+      // First make the API call to add patient
+      final response = await http.post(
+        Uri.parse('http://192.168.127.175:5000/add-patient'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({
+          'name': _auth.currentUser!.displayName,
+          'gender': 'Not Specified', // You might want to add a field for this
+          'age': 0, // You might want to add a field for this
+          'reporting_time': '${selectedTime.hour}:${selectedTime.minute}',
+          'doctor_id': widget.doctorId
+        }),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to add patient to backend');
+      }
+
+      final responseData = json.decode(response.body);
+      final backendPatientId = responseData['patient']['id'];
+
       // Get the next appointment ID from Firestore
       final appointmentCountDoc = await FirebaseFirestore.instance
           .collection('appointmentCount')
@@ -323,6 +345,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
         'speciality': widget.speciality,
         'hospitalName': widget.hospitalName,
         'userId': _auth.currentUser!.uid,
+        'backendPatientId': backendPatientId,
       });
 
       showDialog(
@@ -399,7 +422,6 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
       gapless: false,
     ).toImageData(200.0);
 
-    // Format the time as a string
     final formattedTime =
         "${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}";
 
@@ -417,7 +439,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
               pw.Text('Patient Name: ${_auth.currentUser!.displayName}'),
               pw.Text('Doctor: ${widget.doctorName}'),
               pw.Text('Date: ${DateFormat('yyyy-MM-dd').format(selectedDate)}'),
-              pw.Text('Time: $formattedTime'), // Use the formatted time string
+              pw.Text('Time: $formattedTime'),
               pw.Text('Speciality: ${widget.speciality}'),
               pw.Text('Hospital: ${widget.hospitalName}'),
               pw.SizedBox(height: 20),
@@ -432,7 +454,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   }
 
   Future<bool> _sendEmail(String filePath) async {
-    final smtpServer = gmail('22cs046@charusat.edu.in', 'ilex vmfy tstp ajnr');
+    final smtpServer = gmail('22cs046@charusat.edu.in', 'bfyn bjmy bpty qsfx');
     final message = Message()
       ..from = Address('22cs046@charusat.edu.in', '22cs046')
       ..recipients.add(_auth.currentUser!.email)
