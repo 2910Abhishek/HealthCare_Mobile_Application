@@ -671,29 +671,22 @@ def get_doctor_slots():
         logger.error(traceback.format_exc())
         return jsonify({'message': f'Error fetching time slots: {str(e)}'}), 500
     
+# Flask Backend Fix
+
 @app.route('/api/flutter/doctor-slots', methods=['POST'])
-def add_doctor_slots_flutter():
+def get_doctor_slots_flutter():
     try:
         data = request.json
-        logger.debug(f"Received data for Flutter: {data}")
+        logger.debug(f"Received data from Flutter: {data}")
         
         doctor_id = data.get('doctorId')
         date = data.get('date')
-        slots = data.get('availableSlots', [])
 
-        if not all([doctor_id, date, slots]):
+        if not all([doctor_id, date]):
             return jsonify({
                 'success': False,
                 'message': 'Missing required fields'
             }), 400
-
-        # Get doctor information
-        doctor = db.session.get(User, doctor_id)
-        if not doctor:
-            return jsonify({
-                'success': False,
-                'message': 'Doctor not found'
-            }), 404
 
         try:
             slot_date = datetime.strptime(date, '%Y-%m-%d').date()
@@ -704,46 +697,47 @@ def add_doctor_slots_flutter():
             }), 400
 
         try:
-            # Find existing slot record
+            # Find existing slot record for the given date and doctor
             slot_record = DoctorTimeSlot.query.filter_by(
                 doctor_id=doctor_id,
                 date=slot_date
             ).first()
 
-            slots_dict = {slot: True for slot in slots}
-            
-            if slot_record:
-                logger.debug(f"Updating existing record for date {date}")
-                slot_record.time_slots = slots_dict
+            if slot_record and slot_record.time_slots:
+                # Convert the JSON time_slots to a list of available slots
+                # Only include slots that are marked as True/available
+                available_slots = [
+                    slot_time 
+                    for slot_time, is_available in slot_record.time_slots.items() 
+                    if is_available
+                ]
+                
+                flutter_data = {
+                    'date': date,
+                    'doctorName': slot_record.doctor_name,
+                    'availableSlots': available_slots,
+                    'doctorId': doctor_id
+                }
+                
+                return jsonify({
+                    'success': True,
+                    'message': 'Time slots retrieved successfully',
+                    'data': flutter_data
+                })
             else:
-                logger.debug(f"Creating new record for date {date}")
-                slot_record = DoctorTimeSlot(
-                    doctor_id=doctor_id,
-                    doctor_name=doctor.name,
-                    date=slot_date,
-                    time_slots=slots_dict
-                )
-                db.session.add(slot_record)
-
-            db.session.commit()
-            
-            # Prepare Flutter response format
-            flutter_data = {
-                'date': date,
-                'doctorName': doctor.name,
-                'availableSlots': slots,
-                'doctorId': doctor_id
-            }
-            print( flutter_data)
-
-            return jsonify({
-                'success': True,
-                'message': 'Time slots added successfully',
-                'data': flutter_data
-            })
+                # Return empty slots if no record found
+                return jsonify({
+                    'success': True,
+                    'message': 'No time slots found for this date',
+                    'data': {
+                        'date': date,
+                        'doctorId': doctor_id,
+                        'availableSlots': [],
+                        'doctorName': Doctor.query.get(doctor_id).name if Doctor.query.get(doctor_id) else 'Unknown'
+                    }
+                })
 
         except Exception as e:
-            db.session.rollback()
             logger.error(f"Database error in Flutter endpoint: {str(e)}")
             logger.error(traceback.format_exc())
             return jsonify({
@@ -756,7 +750,7 @@ def add_doctor_slots_flutter():
         logger.error(traceback.format_exc())
         return jsonify({
             'success': False,
-            'message': f'Error adding time slots: {str(e)}'
+            'message': f'Error fetching time slots: {str(e)}'
         }), 500
 
 @app.route('/api/flutter/book-slot', methods=['POST'])

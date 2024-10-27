@@ -39,16 +39,66 @@ class BookAppointmentScreen extends StatefulWidget {
 
 class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   DateTime selectedDate = DateTime.now();
-  TimeOfDay selectedTime = TimeOfDay(hour: 8, minute: 30);
+  TimeOfDay? selectedTime;
   FirebaseAuth _auth = FirebaseAuth.instance;
   bool _isLoading = false;
-  int count = 0;
-  TextEditingController _patientNameController = TextEditingController();
+  List<String> availableTimeSlots = [];
+  bool _isLoadingSlots = false;
 
   @override
-  void dispose() {
-    _patientNameController.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    _fetchAvailableSlots();
+  }
+
+  Future<void> _fetchAvailableSlots() async {
+    setState(() {
+      _isLoadingSlots = true;
+      availableTimeSlots = [];
+    });
+
+    try {
+      final response = await http.post(
+        Uri.parse('http://192.168.127.175:5000/api/flutter/doctor-slots'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({
+          'doctorId': widget.doctorId,
+          'date': DateFormat('yyyy-MM-dd').format(selectedDate),
+        }),
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+
+        if (data['success'] && data['data'] != null) {
+          setState(() {
+            if (data['data']['availableSlots'] != null) {
+              // Convert the slots to List<String>
+              availableTimeSlots =
+                  List<String>.from(data['data']['availableSlots']);
+            }
+          });
+        } else {
+          print('No slots available or error in response: $data');
+        }
+      } else {
+        throw Exception('Failed to load time slots: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching slots: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load available time slots')),
+      );
+    } finally {
+      setState(() {
+        _isLoadingSlots = false;
+      });
+    }
   }
 
   @override
@@ -80,6 +130,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
               absorbing: _isLoading,
               child: Column(
                 children: [
+                  // Doctor info section (unchanged)
                   Container(
                     padding: EdgeInsets.all(16),
                     color: Colors.white,
@@ -146,6 +197,8 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                       ],
                     ),
                   ),
+
+                  // Appointment section
                   Container(
                     padding: EdgeInsets.all(16),
                     child: Column(
@@ -167,30 +220,38 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                         ),
                         SizedBox(height: 16),
                         Text(
-                          "Schedule",
+                          "Available Time Slots",
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         SizedBox(height: 8),
-                        Wrap(
-                          spacing: 12,
-                          runSpacing: 12,
-                          children: [
-                            _buildTimeSlot("08:30 AM"),
-                            _buildTimeSlot("10:30 AM"),
-                            _buildTimeSlot("12:30 PM"),
-                            _buildTimeSlot("02:30 PM"),
-                            _buildTimeSlot("04:30 PM"),
-                          ],
-                        ),
+                        if (_isLoadingSlots)
+                          Center(child: CircularProgressIndicator())
+                        else if (availableTimeSlots.isEmpty)
+                          Center(
+                            child: Text(
+                              "No available slots for selected date",
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          )
+                        else
+                          Wrap(
+                            spacing: 12,
+                            runSpacing: 12,
+                            children: availableTimeSlots
+                                .map((time) => _buildTimeSlot(time))
+                                .toList(),
+                          ),
                         SizedBox(height: 24),
                         SizedBox(
                           width: double.infinity,
                           child: CustomButton(
                             text: 'Book Appointment',
-                            onPressed: _isLoading ? null : _bookAppointment,
+                            onPressed: selectedTime == null || _isLoading
+                                ? null
+                                : _bookAppointment,
                           ),
                         ),
                       ],
@@ -212,57 +273,132 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
     );
   }
 
+  String formatTimeSlot(String slot) {
+    try {
+      // Assuming slot format is "HH:mm"
+      final parts = slot.split(':');
+      final hour = int.parse(parts[0]);
+      final minute = parts[1];
+
+      final period = hour >= 12 ? 'PM' : 'AM';
+      final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+
+      return '$displayHour:$minute $period';
+    } catch (e) {
+      print('Error formatting time slot: $e');
+      return slot; // Return original if formatting fails
+    }
+  }
+
+  Widget _buildTimeSlots() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Available Time Slots",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          SizedBox(height: 16),
+          if (_isLoadingSlots)
+            Center(child: CircularProgressIndicator())
+          else if (availableTimeSlots.isEmpty)
+            Center(
+              child: Text(
+                "No available slots for selected date",
+                style: TextStyle(color: Colors.grey),
+              ),
+            )
+          else
+            GridView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                childAspectRatio: 2.5,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+              ),
+              itemCount: availableTimeSlots.length,
+              itemBuilder: (context, index) =>
+                  _buildTimeSlot(availableTimeSlots[index]),
+            ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildTimeSlot(String time) {
-    bool isSelected = isTimeEqual(selectedTime, time);
-    return GestureDetector(
-      onTap: _isLoading
-          ? null
-          : () {
-              setState(() {
-                selectedTime = parseTimeString(time);
-              });
-            },
-      child: AnimatedContainer(
-        duration: Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        margin: EdgeInsets.all(4),
-        decoration: BoxDecoration(
-          color: _isLoading
-              ? Colors.grey.shade300
-              : (isSelected ? Colors.blue : Colors.grey.shade200),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(
-          time,
-          style: TextStyle(
-            color: isSelected ? Colors.white : Colors.black,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+    String cleanTime =
+        time.replaceAll(' AM AM', ' AM').replaceAll(' PM AM', ' PM');
+    bool isSelected = selectedTime != null && isTimeEqual(selectedTime!, time);
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: _isLoading
+            ? null
+            : () {
+                setState(() {
+                  selectedTime = parseTimeString(time);
+                });
+              },
+        child: AnimatedContainer(
+          duration: Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          padding: EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected ? backgroundColor : Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: backgroundColor.withOpacity(0.3),
+                      blurRadius: 4,
+                      offset: Offset(0, 2),
+                    )
+                  ]
+                : null,
+          ),
+          child: Center(
+            child: Text(
+              cleanTime,
+              style: TextStyle(
+                color: isSelected ? Colors.white : Colors.black87,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                fontSize: 14,
+              ),
+              textAlign: TextAlign.center,
+            ),
           ),
         ),
       ),
     );
   }
 
+// Update parseTimeString method to handle the cleaned time format
   TimeOfDay parseTimeString(String timeString) {
+    // Remove duplicate AM/PM first
+    timeString =
+        timeString.replaceAll(' AM AM', ' AM').replaceAll(' PM AM', ' PM');
+
     final components = timeString.split(' ');
     final time = components[0].split(':');
     int hour = int.parse(time[0]);
     final minute = int.parse(time[1]);
     final period = components[1];
 
-    if (period.toLowerCase() == 'pm' && hour != 12) {
+    if (period.toUpperCase() == 'PM' && hour != 12) {
       hour += 12;
-    } else if (period.toLowerCase() == 'am' && hour == 12) {
+    } else if (period.toUpperCase() == 'AM' && hour == 12) {
       hour = 0;
     }
 
     return TimeOfDay(hour: hour, minute: minute);
-  }
-
-  bool isTimeEqual(TimeOfDay time1, String time2String) {
-    final time2 = parseTimeString(time2String);
-    return time1.hour == time2.hour && time1.minute == time2.minute;
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -274,12 +410,53 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(Duration(days: 90)),
     );
+
     if (picked != null && picked != selectedDate) {
       setState(() {
         selectedDate = picked;
+        selectedTime = null; // Reset selected time when date changes
       });
+      _fetchAvailableSlots(); // Fetch new slots for selected date
     }
   }
+
+  // Keep all existing helper methods
+  // TimeOfDay parseTimeString(String timeString) {
+  //   final components = timeString.split(' ');
+  //   final time = components[0].split(':');
+  //   int hour = int.parse(time[0]);
+  //   final minute = int.parse(time[1]);
+  //   final period = components[1];
+
+  //   if (period.toLowerCase() == 'pm' && hour != 12) {
+  //     hour += 12;
+  //   } else if (period.toLowerCase() == 'am' && hour == 12) {
+  //     hour = 0;
+  //   }
+
+  //   return TimeOfDay(hour: hour, minute: minute);
+  // }
+
+  bool isTimeEqual(TimeOfDay time1, String time2String) {
+    final time2 = parseTimeString(time2String);
+    return time1.hour == time2.hour && time1.minute == time2.minute;
+  }
+
+  // Future<void> _selectDate(BuildContext context) async {
+  //   if (_isLoading) return;
+
+  //   final DateTime? picked = await showDatePicker(
+  //     context: context,
+  //     initialDate: selectedDate,
+  //     firstDate: DateTime.now(),
+  //     lastDate: DateTime.now().add(Duration(days: 90)),
+  //   );
+  //   if (picked != null && picked != selectedDate) {
+  //     setState(() {
+  //       selectedDate = picked;
+  //     });
+  //   }
+  // }
 
   Future<void> _bookAppointment() async {
     setState(() {
@@ -297,7 +474,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
           'name': _auth.currentUser!.displayName,
           'gender': 'Not Specified', // You might want to add a field for this
           'age': 0, // You might want to add a field for this
-          'reporting_time': '${selectedTime.hour}:${selectedTime.minute}',
+          'reporting_time': '${selectedTime!.hour}:${selectedTime!.minute}',
           'doctor_id': widget.doctorId
         }),
       );
@@ -341,7 +518,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
         'patientName': _auth.currentUser!.displayName,
         'doctorName': widget.doctorName,
         'date': selectedDate,
-        'time': '${selectedTime.hour}:${selectedTime.minute}',
+        'time': '${selectedTime!.hour}:${selectedTime!.minute}',
         'speciality': widget.speciality,
         'hospitalName': widget.hospitalName,
         'userId': _auth.currentUser!.uid,
@@ -358,7 +535,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Your appointment has been booked for ${DateFormat('yyyy-MM-dd').format(selectedDate)} at ${selectedTime.format(context)}.",
+                  "Your appointment has been booked for ${DateFormat('yyyy-MM-dd').format(selectedDate)} at ${selectedTime!.format(context)}.",
                 ),
                 SizedBox(height: 10),
                 Text(
@@ -423,7 +600,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
     ).toImageData(200.0);
 
     final formattedTime =
-        "${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}";
+        "${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}";
 
     pdf.addPage(
       pw.Page(
