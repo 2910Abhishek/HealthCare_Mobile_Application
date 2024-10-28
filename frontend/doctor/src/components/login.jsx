@@ -544,8 +544,15 @@ function Login() {
               >
                 Sign In
               </button>
-
               {error && <p className="text-danger text-center">{error}</p>}
+<div className="text-center">
+  <p className="mb-0">
+    Don't have an account?{" "}
+    <a href="/signup" className="text-primary">
+      Sign Up
+    </a>
+  </p>
+</div>
             </MDBCardBody>
           </MDBCard>
         </MDBCol>
