@@ -1,7 +1,8 @@
 import 'dart:io';
-
 import 'package:aarogya/resources/ReportListScreen.dart';
 import 'package:aarogya/resources/add_upload.dart';
+import 'package:aarogya/resources/record_model.dart';
+import 'package:aarogya/resources/storage_services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_statusbarcolor_ns/flutter_statusbarcolor_ns.dart';
@@ -14,16 +15,21 @@ class RecordScreen extends StatefulWidget {
 }
 
 class _RecordScreenState extends State<RecordScreen> {
-  List<File> _labReports = [];
-  List<File> _doctornotes = [];
-  List<File> _imaging = [];
-  List<File> _vaccination = [];
-  List<File> _prescription = [];
-  List<File> _other = [];
+  final StorageService _storageService = StorageService();
+
+  Map<String, List<MedicalRecord>> _records = {
+    'Lab Reports': [],
+    'Doctor Notes': [],
+    'Imaging': [],
+    'Vaccination': [],
+    'Prescription': [],
+    'Other': [],
+  };
 
   @override
   void initState() {
     super.initState();
+    _loadAllRecords(); // Load records when screen initializes
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarColor: Color.fromRGBO(11, 143, 172, 1),
       statusBarIconBrightness: Brightness.light,
@@ -51,33 +57,78 @@ class _RecordScreenState extends State<RecordScreen> {
     await FlutterStatusbarcolor.setStatusBarWhiteForeground(false);
   }
 
-  void _handleAddRecordScreen(String reportType, File imageFile) {
-    setState(() {
-      switch (reportType) {
-        case 'Lab Reports':
-          _labReports.add(imageFile);
-          break;
-        case 'Doctor Notes':
-          _doctornotes.add(imageFile);
-          break;
-        case 'Imaging':
-          _imaging.add(imageFile);
-          break;
-        case 'Vaccination':
-          _vaccination.add(imageFile);
-          break;
-        case 'Prescription':
-          _prescription.add(imageFile);
-          break;
-        case 'Other':
-          _other.add(imageFile);
-          break;
+  Future<void> _loadAllRecords() async {
+    for (String folder in _records.keys) {
+      try {
+        final files = await _storageService.getFiles(folder);
+        setState(() {
+          _records[folder] = files
+              .map((file) => MedicalRecord(
+                    id: DateTime.now().millisecondsSinceEpoch.toString(),
+                    fileName: file['name'] ?? '',
+                    downloadUrl: file['url'] ?? '',
+                    type: folder,
+                    uploadDate: DateTime.now(),
+                  ))
+              .toList();
+        });
+      } catch (e) {
+        print('Error loading $folder: $e');
       }
-    });
+    }
   }
 
-  Widget _buildCard(
-      String title, IconData icon, int count, VoidCallback onTap) {
+  Future<void> _handleAddRecordScreen(String reportType, File imageFile) async {
+    try {
+      String downloadUrl =
+          await _storageService.uploadFile(imageFile, reportType);
+
+      print(downloadUrl);
+
+      final newRecord = MedicalRecord(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        fileName: imageFile.path.split('/').last,
+        downloadUrl: downloadUrl,
+        type: reportType,
+        uploadDate: DateTime.now(),
+      );
+
+      setState(() {
+        _records[reportType]?.add(newRecord);
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error uploading file: $e')),
+      );
+    }
+  }
+
+  void _showReportList(
+      BuildContext context, String title, List<MedicalRecord> reports) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ReportListScreen(
+          title: title,
+          records: reports,
+          onDelete: (record) async {
+            try {
+              await _storageService.deleteFile(record.type, record.fileName);
+              setState(() {
+                _records[record.type]?.removeWhere((r) => r.id == record.id);
+              });
+            } catch (e) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Error deleting file: $e')),
+              );
+            }
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCard(String title, IconData icon, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Card(
@@ -98,23 +149,11 @@ class _RecordScreenState extends State<RecordScreen> {
               ),
               SizedBox(height: 4),
               Text(
-                '$count',
+                '${_records[title]?.length ?? 0}',
                 style: TextStyle(fontSize: 15, color: Colors.grey),
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  void _showReportList(BuildContext context, String title, List<File> reports) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ReportListScreen(
-          title: title,
-          reports: reports,
         ),
       ),
     );
@@ -184,20 +223,33 @@ class _RecordScreenState extends State<RecordScreen> {
                     children: [
                       Flexible(
                         child: _buildCard(
-                            'Lab Reports', Icons.bloodtype, _labReports.length,
-                            () {
-                          _showReportList(context, 'Lab Reports', _labReports);
-                        }),
+                          'Lab Reports',
+                          Icons.bloodtype,
+                          () => _showReportList(
+                            context,
+                            'Lab Reports',
+                            _records['Lab Reports'] ?? [],
+                          ),
+                        ),
                       ),
-                      _buildCard('Doctor Notes', Icons.bloodtype_outlined,
-                          _doctornotes.length, () {
-                        _showReportList(context, 'Doctor Notes', _doctornotes);
-                      }),
                       _buildCard(
-                          'Imaging', Icons.medical_services, _imaging.length,
-                          () {
-                        _showReportList(context, 'Imaging', _imaging);
-                      }),
+                        'Doctor Notes',
+                        Icons.bloodtype_outlined,
+                        () => _showReportList(
+                          context,
+                          'Doctor Notes',
+                          _records['Doctor Notes'] ?? [],
+                        ),
+                      ),
+                      _buildCard(
+                        'Imaging',
+                        Icons.medical_services,
+                        () => _showReportList(
+                          context,
+                          'Imaging',
+                          _records['Imaging'] ?? [],
+                        ),
+                      ),
                     ],
                   ),
                   SizedBox(height: 20),
@@ -206,18 +258,33 @@ class _RecordScreenState extends State<RecordScreen> {
                     children: [
                       Flexible(
                         child: _buildCard(
-                            'Vaccination', Icons.bloodtype, _vaccination.length,
-                            () {
-                          _showReportList(context, 'Vaccination', _vaccination);
-                        }),
+                          'Vaccination',
+                          Icons.bloodtype,
+                          () => _showReportList(
+                            context,
+                            'Vaccination',
+                            _records['Vaccination'] ?? [],
+                          ),
+                        ),
                       ),
                       _buildCard(
-                          'Prescription', Icons.note, _prescription.length, () {
-                        _showReportList(context, 'Prescription', _prescription);
-                      }),
-                      _buildCard('Other', Icons.folder, _other.length, () {
-                        _showReportList(context, 'Other', _other);
-                      }),
+                        'Prescription',
+                        Icons.note,
+                        () => _showReportList(
+                          context,
+                          'Prescription',
+                          _records['Prescription'] ?? [],
+                        ),
+                      ),
+                      _buildCard(
+                        'Other',
+                        Icons.folder,
+                        () => _showReportList(
+                          context,
+                          'Other',
+                          _records['Other'] ?? [],
+                        ),
+                      ),
                     ],
                   ),
                   SizedBox(height: 40),
