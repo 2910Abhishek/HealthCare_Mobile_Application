@@ -411,6 +411,15 @@ from reportlab.lib.pagesizes import letter
 import json
 import os
 from dotenv import load_dotenv  # Add this import
+from openrouteservice import client
+import datetime 
+from datetime import timedelta
+
+# Configure OpenRouteService
+ors_client = client.Client(key='5b3ce3597851110001cf6248db523009310242dfb5e95e5cb0e24285')
+
+# Hospital location (constant)
+HOSPITAL_COORDINATES = [73.243088012,22.299856887841052 ]  # [longitude, latitude]
 
 
 load_dotenv()
@@ -451,6 +460,12 @@ class Patient(db.Model):
     patient_history_url = db.Column(db.String(255), nullable=True)
     lab_report_url = db.Column(db.String(255), nullable=True)
     doctor_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    latitude = db.Column(db.Float)
+    longitude = db.Column(db.Float)
+    estimated_arrival_time = db.Column(db.String(20))
+    actual_waiting_time = db.Column(db.Integer, default=0)
+
+
 
 class DoctorTimeSlot(db.Model):
     __tablename__ = 'doctor_time_slots'
@@ -501,6 +516,31 @@ def login():
 def add_patient():
     try:
         data = request.json
+        
+        # Calculate travel time using OpenRouteService
+        patient_coordinates = [
+            float(data.get('longitude')), 
+            float(data.get('latitude'))
+        ]
+        
+        # Get route and duration
+        route = ors_client.directions(
+            coordinates=[patient_coordinates, HOSPITAL_COORDINATES],
+            profile='driving-car',
+            format='geojson'
+        )
+        
+        # Duration is in seconds, convert to minutes
+        travel_time_minutes = route['features'][0]['properties']['segments'][0]['duration'] / 60
+        
+        # Add buffer time (20% of travel time or minimum 10 minutes)
+        buffer_time = max(travel_time_minutes * 0.2, 10)
+        total_time_needed = travel_time_minutes + buffer_time
+        
+        # Calculate when patient should leave
+        reporting_time = datetime.datetime.strptime(data.get('reporting_time'), '%H:%M')
+        leave_time = reporting_time - timedelta(minutes=total_time_needed)
+        
         new_patient = Patient(
             name=data.get('name'),
             gender=data.get('gender'),
@@ -508,7 +548,10 @@ def add_patient():
             reporting_time=data.get('reporting_time'),
             patient_history_url=data.get('patient_history_url'),
             lab_report_url=data.get('lab_report_url'),
-            doctor_id=data.get('doctor_id')
+            doctor_id=data.get('doctor_id'),
+            latitude=data.get('latitude'),
+            longitude=data.get('longitude'),
+            estimated_arrival_time=leave_time.strftime('%H:%M')
         )
 
         db.session.add(new_patient)
@@ -523,16 +566,29 @@ def add_patient():
             'reporting_time': new_patient.reporting_time,
             'patient_history_url': new_patient.patient_history_url,
             'lab_report_url': new_patient.lab_report_url,
-            'assigned_doctor': doctor.name
+            'assigned_doctor': doctor.name,
+            'travel_time_minutes': round(travel_time_minutes),
+            'suggested_leave_time': leave_time.strftime('%H:%M'),
+            'estimated_arrival_time': new_patient.estimated_arrival_time
         }
         
         # Emit the socket event
         socketio.emit('new_patient', patient_data, namespace='/')
         
-        return jsonify({'message': 'Patient added successfully', 'patient': patient_data})
+        return jsonify({
+            'message': 'Patient added successfully', 
+            'patient': patient_data,
+            'travel_details': {
+                'travel_time_minutes': round(travel_time_minutes),
+                'buffer_time_minutes': round(buffer_time),
+                'suggested_leave_time': leave_time.strftime('%H:%M')
+            }
+        })
     except Exception as e:
         print(f"Error adding patient: {str(e)}")
         return jsonify({'error': str(e)}), 500
+
+
 
 @app.route('/get-patient-data', methods=['GET'])
 def get_patient_data():

@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -45,9 +46,28 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   List<String> availableTimeSlots = [];
   bool _isLoadingSlots = false;
 
+  double? latitude;
+  double? longitude;
+  String? address;
+
+  // Add location permission handling
+  Future<void> _getLocation() async {
+    final permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      await Geolocator.requestPermission();
+    }
+
+    final position = await Geolocator.getCurrentPosition();
+    setState(() {
+      latitude = position.latitude;
+      longitude = position.longitude;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
+    _checkLocationPermission();
     _fetchAvailableSlots();
   }
 
@@ -59,7 +79,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.127.175:5000/api/flutter/doctor-slots'),
+        Uri.parse('http://192.168.224.183:5000/api/flutter/doctor-slots'),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -98,6 +118,30 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
       setState(() {
         _isLoadingSlots = false;
       });
+    }
+  }
+
+  Future<void> _checkLocationPermission() async {
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        // Show dialog that location is required
+        showDialog(
+          context: context,
+          builder: (BuildContext context) => AlertDialog(
+            title: Text('Location Required'),
+            content: Text(
+                'Location permission is required to calculate travel time to hospital.'),
+            actions: [
+              TextButton(
+                child: Text('OK'),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          ),
+        );
+      }
     }
   }
 
@@ -464,18 +508,25 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
     });
 
     try {
-      // First make the API call to add patient
+      // Get current location first
+      final Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
+
+      // First make the API call to add patient with location
       final response = await http.post(
-        Uri.parse('http://192.168.127.175:5000/add-patient'),
+        Uri.parse('http://192.168.224.183:5000/add-patient'),
         headers: {
           'Content-Type': 'application/json',
         },
         body: json.encode({
           'name': _auth.currentUser!.displayName,
-          'gender': 'Not Specified', // You might want to add a field for this
-          'age': 0, // You might want to add a field for this
+          'gender': 'Not Specified',
+          'age': 0,
           'reporting_time': '${selectedTime!.hour}:${selectedTime!.minute}',
-          'doctor_id': widget.doctorId
+          'doctor_id': widget.doctorId,
+          // Add location data
+          'latitude': position.latitude,
+          'longitude': position.longitude,
         }),
       );
 
@@ -485,6 +536,8 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
 
       final responseData = json.decode(response.body);
       final backendPatientId = responseData['patient']['id'];
+      final travelDetails =
+          responseData['travel_details']; // New travel time data
 
       // Get the next appointment ID from Firestore
       final appointmentCountDoc = await FirebaseFirestore.instance
@@ -512,7 +565,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
       bool emailSent = await _sendEmail(file.path);
       print('Email sent: $emailSent');
 
-      // Save appointment details to Firestore
+      // Save appointment details to Firestore with location and travel info
       await FirebaseFirestore.instance.collection('appointments').add({
         'appointmentId': appointmentId,
         'patientName': _auth.currentUser!.displayName,
@@ -523,6 +576,12 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
         'hospitalName': widget.hospitalName,
         'userId': _auth.currentUser!.uid,
         'backendPatientId': backendPatientId,
+        // Add location and travel details
+        'patientLatitude': position.latitude,
+        'patientLongitude': position.longitude,
+        'estimatedTravelTime': travelDetails['travel_time_minutes'],
+        'suggestedLeaveTime': travelDetails['suggested_leave_time'],
+        'bufferTime': travelDetails['buffer_time_minutes'],
       });
 
       showDialog(
@@ -536,6 +595,16 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
               children: [
                 Text(
                   "Your appointment has been booked for ${DateFormat('yyyy-MM-dd').format(selectedDate)} at ${selectedTime!.format(context)}.",
+                ),
+                SizedBox(height: 10),
+                // Add travel time information
+                Text(
+                  "Estimated travel time: ${travelDetails['travel_time_minutes']} minutes",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  "Suggested departure time: ${travelDetails['suggested_leave_time']}",
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 SizedBox(height: 10),
                 Text(
