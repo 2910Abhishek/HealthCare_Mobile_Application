@@ -395,12 +395,13 @@
 
 
 
+import threading
 from flask import Flask, request, jsonify, send_file
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
-from datetime import datetime
+from datetime import datetime, time
 from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.orm import Session
 import logging
@@ -412,7 +413,7 @@ import json
 import os
 from dotenv import load_dotenv  # Add this import
 from openrouteservice import client
-import datetime 
+from datetime import datetime
 from datetime import timedelta
 
 # Configure OpenRouteService
@@ -450,7 +451,17 @@ class User(db.Model):
     name = db.Column(db.String(255), nullable=True)
     email = db.Column(db.String(255), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
-
+def emit_doctor_details(doctor_data):
+    """
+    Function to emit doctor details after 2 seconds
+    """
+    time.sleep(2)  # Wait for 2 seconds
+    try:
+        # Emit the doctor details to all connected clients
+        socketio.emit('new_doctor_registered', doctor_data, broadcast=True)
+        print(f"Doctor details emitted: {doctor_data}")
+    except Exception as e:
+        print(f"Error emitting doctor details: {str(e)}")
 class Patient(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False)

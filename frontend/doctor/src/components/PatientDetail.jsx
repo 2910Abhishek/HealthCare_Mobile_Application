@@ -434,17 +434,13 @@
 // export default PatientDetail;
 
 
-
-
-
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import "../styles/PatientDetail.css";
 import Medication from './Medication';
-import PastPrescriptions from './PastPrescriptions'; // Import the new component
-
+import PastPrescriptions from './PastPrescriptions';
 
 const PatientDetail = () => {
   const location = useLocation();
@@ -456,8 +452,11 @@ const PatientDetail = () => {
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(null);
   const [selectedMedicines, setSelectedMedicines] = useState({});
 
+  // Format today's date as YYYY-MM-DD for the input type="date"
+  const today = new Date().toISOString().split('T')[0];
+
   const [prescription, setPrescription] = useState({
-    date: '',
+    date: today, // Set default date to today
     medications: [{
       medicine: '',
       dosage: '',
@@ -482,7 +481,6 @@ const PatientDetail = () => {
       setLoading(false);
     }
   }, [location.state]);
-
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -511,7 +509,6 @@ const PatientDetail = () => {
     e.preventDefault();
     
     try {
-      // Show loading state
       setLoading(true);
   
       const doctorId = localStorage.getItem('doctor_id');
@@ -536,24 +533,15 @@ const PatientDetail = () => {
       const data = await response.json();
   
       if (data.success) {
-        // Hide loading state
         setLoading(false);
-        
-        // Show success message
         alert('Prescription saved successfully!');
-        
-        // Open PDF in new tab
         window.open(`http://localhost:5000${data.data.pdfUrl}`, '_blank');
-        
-        // Navigate back to patient list
         navigate('/dashboard');
       } else {
         throw new Error(data.message);
       }
     } catch (error) {
-      // Hide loading state
       setLoading(false);
-      
       console.error('Error submitting prescription:', error);
       alert('Failed to save prescription. Please try again.');
     }
@@ -586,6 +574,7 @@ const PatientDetail = () => {
               value={prescription.date}
               onChange={handleInputChange}
               className="form-control"
+              defaultValue={today} // Set default value to today
             />
           </div>
 
@@ -641,8 +630,7 @@ const PatientDetail = () => {
           <button type="submit" className="btn btn-success">Submit</button>
         </form>
       </div>
-           {/* Add the PastPrescriptions component */}
-           <PastPrescriptions patientId={patient.id} />
+      <PastPrescriptions patientId={patient.id} />
     </div>
   );
 };

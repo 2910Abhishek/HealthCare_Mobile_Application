@@ -1,88 +1,186 @@
 .past-prescriptions {
-    margin-top: 2rem;
-    padding: 1.5rem;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.past-prescriptions h2 {
+  margin-bottom: 1.5rem;
+  color: #333;
+  font-size: 1.5rem;
+}
+
+.prescription-list {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  position: relative; /* For scrollbar positioning */
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.prescription-list::-webkit-scrollbar {
+  height: 6px;
+}
+
+.prescription-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.prescription-list::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px; /* Minimum width to ensure content fits */
+  table-layout: fixed; /* Fixed table layout for better control */
+}
+
+.table th,
+.table td {
+  padding: 1rem;
+  border: 1px solid #dee2e6;
+  text-align: left;
+  word-wrap: break-word; /* Allow text to wrap */
+}
+
+/* Set specific widths for columns */
+.table th:nth-child(1), .table td:nth-child(1) { width: 12%; } /* Date */
+.table th:nth-child(2), .table td:nth-child(2) { width: 15%; } /* Doctor */
+.table th:nth-child(3), .table td:nth-child(3) { width: 30%; } /* Medications */
+.table th:nth-child(4), .table td:nth-child(4) { width: 18%; } /* Next Appointment */
+.table th:nth-child(5), .table td:nth-child(5) { width: 15%; } /* Remarks */
+.table th:nth-child(6), .table td:nth-child(6) { width: 10%; } /* Action */
+
+.table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #495057;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+/* Update the table cell containing the button */
+.table td:last-child {
+  text-align: center;     /* Center the button container */
+  vertical-align: middle; /* Vertical center in cell */
+  padding: 0.5rem;        /* Slightly reduced padding for better fit */
+}
+
+.medications-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-width: 100%;
+}
+/* Optional: Add loading state styles */
+.view-btn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.medications-list li {
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.medications-list li:last-child {
+  margin-bottom: 0;
+}
+
+.timing {
+  display: block;
+  font-size: 0.8rem;
+  color: #666;
+  margin-top: 0.2rem;
+}
+
+.view-btn {
+  display: flex;           /* Use flexbox for centering */
+  align-items: center;     /* Vertical center */
+  justify-content: center; /* Horizontal center */
+  padding: 0.375rem 1rem;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  min-width: 80px;        /* Slightly increased for better appearance */
+  height: 36px;           /* Fixed height for consistency */
+  font-size: 0.9rem;      /* Consistent font size */
+  font-weight: 500;       /* Slightly bolder text */
+  margin: 0 auto;         /* Center the button in its container */
+  text-align: center;     /* Backup center alignment */
+  line-height: 1;         /* Remove any line-height interference */
+  letter-spacing: 0.5px;  /* Slightly improved text readability */
+}
+
+.view-btn:hover {
+  background-color: #0056b3;
+  transform: translateY(-1px); /* Slight lift effect on hover */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow on hover */
+}
+.view-btn:active {
+  transform: translateY(0); /* Remove lift effect when clicked */
+}
+
+.error-message {
+  color: #dc3545;
+  padding: 1rem;
+  text-align: center;
+}
+
+.no-prescriptions {
+  text-align: center;
+  color: #6c757d;
+  padding: 2rem;
+}
+
+/* Add shadow indicators for scroll */
+@media screen and (max-width: 1024px) {
+  .prescription-list::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 15px;
+      background: linear-gradient(to right, rgba(255,255,255,0), rgba(0,0,0,0.1));
+      pointer-events: none;
   }
   
-  .past-prescriptions h2 {
-    margin-bottom: 1.5rem;
-    color: #333;
-    font-size: 1.5rem;
+  .prescription-list::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 15px;
+      background: linear-gradient(to left, rgba(255,255,255,0), rgba(0,0,0,0.1));
+      pointer-events: none;
+      z-index: 1;
   }
-  
-  .prescription-list {
-    overflow-x: auto;
+}
+
+/* Add hint for mobile users */
+@media screen and (max-width: 768px) {
+  .past-prescriptions::after {
+      content: 'Scroll horizontally to view more →';
+      display: block;
+      text-align: center;
+      color: #666;
+      font-size: 0.8rem;
+      margin-top: 1rem;
   }
-  
-  .table {
-    width: 100%;
-    border-collapse: collapse;
-    min-width: 800px;
-  }
-  
-  .table th,
-  .table td {
-    padding: 1rem;
-    border: 1px solid #dee2e6;
-    text-align: left;
-  }
-  
-  .table th {
-    background-color: #f8f9fa;
-    font-weight: 600;
-    color: #495057;
-  }
-  
-  .table tbody tr:hover {
-    background-color: #f8f9fa;
-  }
-  
-  .medications-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-  
-  .medications-list li {
-    margin-bottom: 0.5rem;
-    font-size: 0.9rem;
-  }
-  
-  .medications-list li:last-child {
-    margin-bottom: 0;
-  }
-  
-  .timing {
-    display: block;
-    font-size: 0.8rem;
-    color: #666;
-    margin-top: 0.2rem;
-  }
-  
-  .view-btn {
-    padding: 0.375rem 1rem;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-  }
-  
-  .view-btn:hover {
-    background-color: #0056b3;
-  }
-  
-  .error-message {
-    color: #dc3545;
-    padding: 1rem;
-    text-align: center;
-  }
-  
-  .no-prescriptions {
-    text-align: center;
-    color: #6c757d;
-    padding: 2rem;
-  }
+}
