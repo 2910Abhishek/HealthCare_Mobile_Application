@@ -79,12 +79,12 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.224.183:5000/api/flutter/doctor-slots'),
+        Uri.parse('http://192.168.127.175:5000/api/flutter/doctor-slots'),
         headers: {
           'Content-Type': 'application/json',
         },
         body: json.encode({
-          'doctorId': widget.doctorId,
+          'doctorId': 2,
           'date': DateFormat('yyyy-MM-dd').format(selectedDate),
         }),
       );
@@ -380,7 +380,6 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
     String cleanTime =
         time.replaceAll(' AM AM', ' AM').replaceAll(' PM AM', ' PM');
     bool isSelected = selectedTime != null && isTimeEqual(selectedTime!, time);
-
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -514,7 +513,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
 
       // First make the API call to add patient with location
       final response = await http.post(
-        Uri.parse('http://192.168.224.183:5000/add-patient'),
+        Uri.parse('http://192.168.127.175:5000/add-patient'),
         headers: {
           'Content-Type': 'application/json',
         },
