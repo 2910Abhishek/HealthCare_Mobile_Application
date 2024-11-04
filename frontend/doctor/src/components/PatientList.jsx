@@ -951,6 +951,248 @@
 
 // export default PatientList;
 
+// import React, { useState, useEffect, useRef } from 'react';
+// import { useNavigate } from 'react-router-dom';
+// import { useAuth } from './authcontext';
+// import { io } from 'socket.io-client';
+// import DatePicker from 'react-datepicker';
+// import 'react-datepicker/dist/react-datepicker.css';
+// import "../styles/patientlist.css";
+
+// const PatientList = () => {
+//   const [patientsByDate, setPatientsByDate] = useState({});
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState(null);
+//   const [selectedDate, setSelectedDate] = useState(null);
+//   const { userName } = useAuth();
+//   const containerRef = useRef(null);
+//   const socketRef = useRef(null);
+//   const navigate = useNavigate();
+
+//   useEffect(() => {
+//     // Initial data fetch
+//     fetchPatients();
+
+//     // Socket setup
+//     socketRef.current = io('http://localhost:5000', {
+//       transports: ['websocket', 'polling'],
+//       cors: {
+//         origin: "http://localhost:3000",
+//         credentials: true
+//       }
+//     });
+
+//     // Socket event listeners
+//     socketRef.current.on('connect', () => {
+//       console.log('Socket connected successfully');
+//     });
+
+//     socketRef.current.on('disconnect', () => {
+//       console.log('Socket disconnected');
+//     });
+
+//     socketRef.current.on('connect_error', (error) => {
+//       console.log('Socket connection error:', error);
+//     });
+
+//     socketRef.current.on('new_patient', (newPatient) => {
+//       console.log('New patient received:', newPatient);
+      
+//       if (newPatient.assigned_doctor === userName) {
+//         setPatientsByDate(prevPatients => {
+//           const date = new Date(newPatient.reporting_time).toLocaleDateString();
+//           const updatedPatients = { ...prevPatients };
+          
+//           if (!updatedPatients[date]) {
+//             updatedPatients[date] = [];
+//           }
+
+//           // Check if patient already exists
+//           const existingIndex = updatedPatients[date].findIndex(p => p.id === newPatient.id);
+          
+//           if (existingIndex === -1) {
+//             // Add new patient
+//             updatedPatients[date] = [
+//               ...updatedPatients[date],
+//               { ...newPatient, consulted: false }
+//             ];
+//           } else {
+//             // Update existing patient
+//             updatedPatients[date][existingIndex] = {
+//               ...newPatient,
+//               consulted: updatedPatients[date][existingIndex].consulted
+//             };
+//           }
+          
+//           return updatedPatients;
+//         });
+//       }
+//     });
+
+//     // Cleanup
+//     return () => {
+//       if (socketRef.current) {
+//         socketRef.current.disconnect();
+//       }
+//     };
+//   }, [userName]);
+
+//   const fetchPatients = async () => {
+//     try {
+//       const response = await fetch('http://localhost:5000/get-patient-data');
+//       if (!response.ok) {
+//         throw new Error('Failed to fetch patient data');
+//       }
+//       const data = await response.json();
+      
+//       // Filter patients for current doctor
+//       const filteredPatients = data.filter(patient => patient.assigned_doctor === userName);
+      
+//       // Get stored consulted status
+//       const storedConsultedStatus = JSON.parse(localStorage.getItem('consultedStatus') || '{}');
+
+//       // Group patients by date
+//       const groupedPatients = filteredPatients.reduce((acc, patient) => {
+//         const date = new Date(patient.reporting_time).toLocaleDateString();
+//         if (!acc[date]) {
+//           acc[date] = [];
+//         }
+//         acc[date].push({
+//           ...patient,
+//           consulted: storedConsultedStatus[patient.id] || false
+//         });
+//         return acc;
+//       }, {});
+
+//       setPatientsByDate(groupedPatients);
+//       setLoading(false);
+//     } catch (err) {
+//       console.error('Error fetching patient data:', err);
+//       setError('Failed to load patient data. Please try again later.');
+//       setLoading(false);
+//     }
+//   };
+
+//   const handleConsultedChange = (event, date, index) => {
+//     event.stopPropagation();
+//     setPatientsByDate(prevPatients => {
+//       const newPatients = JSON.parse(JSON.stringify(prevPatients));
+//       if (newPatients[date] && newPatients[date][index]) {
+//         const patient = newPatients[date][index];
+//         patient.consulted = !patient.consulted;
+        
+//         const storedConsultedStatus = JSON.parse(localStorage.getItem('consultedStatus') || '{}');
+//         storedConsultedStatus[patient.id] = patient.consulted;
+//         localStorage.setItem('consultedStatus', JSON.stringify(storedConsultedStatus));
+//       }
+//       return newPatients;
+//     });
+//   };
+
+//   const handlePatientClick = (patientId) => {
+//     const selectedPatient = Object.values(patientsByDate)
+//       .flat()
+//       .find(patient => patient.id === patientId);
+  
+//     if (selectedPatient) {
+//       navigate(`/patient/${patientId}`, { state: { patient: selectedPatient } });
+//     } else {
+//       console.error('Patient not found');
+//     }
+//   };
+
+//   if (loading) return <div className="patient-list-loading">Loading patient data...</div>;
+//   if (error) return <div className="patient-list-error">{error}</div>;
+
+//   const today = new Date().toLocaleDateString();
+//   const sortedDates = Object.keys(patientsByDate).sort((a, b) => new Date(a) - new Date(b));
+//   const displayDate = selectedDate ? selectedDate.toLocaleDateString() : today;
+
+//   return (
+//     <div className="patient-list-container" ref={containerRef}>
+//       <div className="patient-list-header">
+//         <h1>Patient Appointments</h1>
+//         <div className="date-picker-container">
+//           <DatePicker
+//             selected={selectedDate}
+//             onChange={date => setSelectedDate(date)}
+//             placeholderText="Select date"
+//             className="date-picker"
+//             isClearable
+//           />
+//         </div>
+//       </div>
+//       {sortedDates.length === 0 ? (
+//         <p className="no-patients">No patients scheduled for checkup.</p>
+//       ) : (
+//         <div className="date-sections">
+//           <DateSection
+//             dates={[displayDate]}
+//             patientsByDate={patientsByDate}
+//             handleConsultedChange={handleConsultedChange}
+//             handlePatientClick={handlePatientClick}
+//             isToday={displayDate === today}
+//             isSelected={selectedDate !== null}
+//           />
+//         </div>
+//       )}
+//     </div>
+//   );
+// };
+
+// const DateSection = ({ dates, patientsByDate, handleConsultedChange, handlePatientClick, isToday = false, isSelected = false }) => {
+//   return dates.map(date => {
+//     const patients = patientsByDate[date] || [];
+//     const displayDate = new Date(date);
+//     const isInFuture = displayDate > new Date();
+
+//     return (
+//       <div key={date} className={`date-section ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''} ${isInFuture ? 'future' : ''}`}>
+//         <h2 className="date-header">
+//           {isToday ? 'Today' : isSelected ? 'Selected Date' : displayDate.toLocaleDateString()}
+//           {isInFuture && ' (Future Appointment)'}
+//         </h2>
+//         <div className="patient-grid">
+//           {patients.length === 0 ? (
+//             <p className="no-patients-for-date">No patients scheduled for this date.</p>
+//           ) : (
+//             patients.map((patient, index) => (
+//               <div 
+//                 key={patient.id} 
+//                 className={`patient-card ${patient.consulted ? 'consulted' : ''}`}
+//                 onClick={() => handlePatientClick(patient.id)}
+//               >
+//                 <div className="patient-info">
+//                   <h3 className="patient-name">{patient.name}</h3>
+//                   <div className="patient-details">
+//                     <p>Gender: {patient.gender}</p>
+//                     <p>Age: {patient.age}</p>
+//                     <p>Reporting Time: {new Date(patient.reporting_time).toLocaleTimeString()}</p>
+//                   </div>
+//                 </div>
+//                 <div className="patient-actions" onClick={(e) => e.stopPropagation()}>
+//                   <div className="consulted-checkbox">
+//                     <label>
+//                       <input
+//                         type="checkbox"
+//                         checked={patient.consulted}
+//                         onChange={(e) => handleConsultedChange(e, date, index)}
+//                       />
+//                       Consulted
+//                     </label>
+//                   </div>
+//                 </div>
+//               </div>
+//             ))
+//           )}
+//         </div>
+//       </div>
+//     );
+//   });
+// };
+
+// export default PatientList;
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './authcontext';
@@ -963,17 +1205,28 @@ const PatientList = () => {
   const [patientsByDate, setPatientsByDate] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const { userName } = useAuth();
   const containerRef = useRef(null);
   const socketRef = useRef(null);
   const navigate = useNavigate();
 
+  // Helper function to parse the date string from API
+  const parseApiDate = (dateString) => {
+    if (!dateString) return null;
+    return new Date(dateString.replace(' ', 'T'));  // Convert to ISO format for reliable parsing
+  };
+
+  // Helper function to format date for grouping patients
+  const formatDate = (date) => {
+    if (!date) return '';
+    const d = new Date(date);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  };
+
   useEffect(() => {
-    // Initial data fetch
     fetchPatients();
 
-    // Socket setup
     socketRef.current = io('http://localhost:5000', {
       transports: ['websocket', 'polling'],
       cors: {
@@ -982,42 +1235,29 @@ const PatientList = () => {
       }
     });
 
-    // Socket event listeners
     socketRef.current.on('connect', () => {
       console.log('Socket connected successfully');
     });
 
-    socketRef.current.on('disconnect', () => {
-      console.log('Socket disconnected');
-    });
-
-    socketRef.current.on('connect_error', (error) => {
-      console.log('Socket connection error:', error);
-    });
-
     socketRef.current.on('new_patient', (newPatient) => {
-      console.log('New patient received:', newPatient);
-      
       if (newPatient.assigned_doctor === userName) {
         setPatientsByDate(prevPatients => {
-          const date = new Date(newPatient.reporting_time).toLocaleDateString();
+          const parsedDate = parseApiDate(newPatient.reporting_time);
+          const date = formatDate(parsedDate);
           const updatedPatients = { ...prevPatients };
           
           if (!updatedPatients[date]) {
             updatedPatients[date] = [];
           }
 
-          // Check if patient already exists
           const existingIndex = updatedPatients[date].findIndex(p => p.id === newPatient.id);
           
           if (existingIndex === -1) {
-            // Add new patient
             updatedPatients[date] = [
               ...updatedPatients[date],
               { ...newPatient, consulted: false }
             ];
           } else {
-            // Update existing patient
             updatedPatients[date][existingIndex] = {
               ...newPatient,
               consulted: updatedPatients[date][existingIndex].consulted
@@ -1029,7 +1269,6 @@ const PatientList = () => {
       }
     });
 
-    // Cleanup
     return () => {
       if (socketRef.current) {
         socketRef.current.disconnect();
@@ -1051,9 +1290,10 @@ const PatientList = () => {
       // Get stored consulted status
       const storedConsultedStatus = JSON.parse(localStorage.getItem('consultedStatus') || '{}');
 
-      // Group patients by date
+      // Group patients by date using the formatted date
       const groupedPatients = filteredPatients.reduce((acc, patient) => {
-        const date = new Date(patient.reporting_time).toLocaleDateString();
+        const parsedDate = parseApiDate(patient.reporting_time);
+        const date = formatDate(parsedDate);
         if (!acc[date]) {
           acc[date] = [];
         }
@@ -1104,9 +1344,11 @@ const PatientList = () => {
   if (loading) return <div className="patient-list-loading">Loading patient data...</div>;
   if (error) return <div className="patient-list-error">{error}</div>;
 
-  const today = new Date().toLocaleDateString();
-  const sortedDates = Object.keys(patientsByDate).sort((a, b) => new Date(a) - new Date(b));
-  const displayDate = selectedDate ? selectedDate.toLocaleDateString() : today;
+  const today = formatDate(new Date());
+  const selectedDateStr = formatDate(selectedDate);
+  
+  // Get all dates that have patients
+  const availableDates = Object.keys(patientsByDate).sort();
 
   return (
     <div className="patient-list-container" ref={containerRef}>
@@ -1116,31 +1358,34 @@ const PatientList = () => {
           <DatePicker
             selected={selectedDate}
             onChange={date => setSelectedDate(date)}
-            placeholderText="Select date"
             className="date-picker"
-            isClearable
+            dateFormat="yyyy-MM-dd"
           />
         </div>
       </div>
-      {sortedDates.length === 0 ? (
-        <p className="no-patients">No patients scheduled for checkup.</p>
-      ) : (
-        <div className="date-sections">
+      <div className="date-sections">
+        {availableDates.length === 0 ? (
+          <p className="no-patients">No patients scheduled for checkup.</p>
+        ) : (
           <DateSection
-            dates={[displayDate]}
+            dates={[selectedDateStr]}
             patientsByDate={patientsByDate}
             handleConsultedChange={handleConsultedChange}
             handlePatientClick={handlePatientClick}
-            isToday={displayDate === today}
-            isSelected={selectedDate !== null}
+            isToday={selectedDateStr === today}
+            isSelected={true}
+            formatTime={(timeStr) => {
+              const date = parseApiDate(timeStr);
+              return date ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+            }}
           />
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
 
-const DateSection = ({ dates, patientsByDate, handleConsultedChange, handlePatientClick, isToday = false, isSelected = false }) => {
+const DateSection = ({ dates, patientsByDate, handleConsultedChange, handlePatientClick, isToday = false, isSelected = false, formatTime }) => {
   return dates.map(date => {
     const patients = patientsByDate[date] || [];
     const displayDate = new Date(date);
@@ -1149,7 +1394,7 @@ const DateSection = ({ dates, patientsByDate, handleConsultedChange, handlePatie
     return (
       <div key={date} className={`date-section ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''} ${isInFuture ? 'future' : ''}`}>
         <h2 className="date-header">
-          {isToday ? 'Today' : isSelected ? 'Selected Date' : displayDate.toLocaleDateString()}
+          {isToday ? 'Today' : isSelected ? 'Selected Date' : date}
           {isInFuture && ' (Future Appointment)'}
         </h2>
         <div className="patient-grid">
@@ -1167,7 +1412,7 @@ const DateSection = ({ dates, patientsByDate, handleConsultedChange, handlePatie
                   <div className="patient-details">
                     <p>Gender: {patient.gender}</p>
                     <p>Age: {patient.age}</p>
-                    <p>Reporting Time: {new Date(patient.reporting_time).toLocaleTimeString()}</p>
+                    <p>Reporting Time: {formatTime(patient.reporting_time)}</p>
                   </div>
                 </div>
                 <div className="patient-actions" onClick={(e) => e.stopPropagation()}>

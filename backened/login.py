@@ -1,10 +1,9 @@
-
 from flask import Flask, request, jsonify, send_file
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
-from datetime import datetime
+from datetime import datetime, timedelta  # Import datetime directly like this
 from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.orm import Session
 import logging
@@ -16,8 +15,6 @@ import json
 import os
 from dotenv import load_dotenv  
 from openrouteservice import client
-import datetime 
-from datetime import timedelta  
 
 # Configure OpenRouteService
 ors_client = client.Client(key='5b3ce3597851110001cf6248db523009310242dfb5e95e5cb0e24285')
@@ -223,6 +220,10 @@ def validate_urls(urls_string):
             any_invalid = True
             
     return ','.join(valid_urls), any_invalid
+
+
+
+
 @app.route('/add-patient', methods=['POST'])
 def add_patient():
     try:
@@ -230,8 +231,7 @@ def add_patient():
         
         # Parse the datetime string
         try:
-            reporting_datetime = datetime.datetime.strptime(data.get('reporting_time'), '%Y-%m-%d %H:%M')
-            reporting_time = reporting_datetime.strftime('%H:%M')  # Extract time for storage
+            reporting_datetime = datetime.strptime(data.get('reporting_time'), '%Y-%m-%d %H:%M')
         except ValueError as e:
             return jsonify({'error': f"time data '{data.get('reporting_time')}' does not match format 'YYYY-MM-DD HH:mm'"}), 400
         
@@ -262,7 +262,7 @@ def add_patient():
             name=data.get('name'),
             gender=data.get('gender'),
             age=data.get('age'),
-            reporting_time=reporting_time,  # Store only the time
+            reporting_time=data.get('reporting_time'),  # Store the full datetime string
             vaccination=data.get('vaccination'),
             lab_report=data.get('lab_report'),
             imaging=data.get('imaging'),
@@ -278,12 +278,13 @@ def add_patient():
         db.session.commit()
 
         doctor = User.query.get(new_patient.doctor_id)
+        
         patient_data = {
             'id': new_patient.id,
             'name': new_patient.name,
             'gender': new_patient.gender,
             'age': new_patient.age,
-            'reporting_time': data.get('reporting_time'),  # Return the full datetime
+            'reporting_time': new_patient.reporting_time,  # Use the full datetime string
             'vaccination': new_patient.vaccination,
             'lab_report': new_patient.lab_report,
             'imaging': new_patient.imaging,
@@ -291,12 +292,12 @@ def add_patient():
             'other': new_patient.other,
             'assigned_doctor': doctor.name,
             'travel_time_minutes': round(travel_time_minutes),
-            'suggested_leave_time': leave_time.strftime('%Y-%m-%d %H:%M'),  # Full datetime
-            'estimated_arrival_time': leave_time.strftime('%Y-%m-%d %H:%M')  # Full datetime
+            'suggested_leave_time': leave_time.strftime('%Y-%m-%d %H:%M'),
+            'estimated_arrival_time': leave_time.strftime('%Y-%m-%d %H:%M')
         }
         
         # Emit the socket event
-        socketio.emit('new_patient', patient_data, namespace='/')
+        socketio.emit('new_patient', patient_data)
         
         return jsonify({
             'message': 'Patient added successfully', 
@@ -310,7 +311,6 @@ def add_patient():
     except Exception as e:
         print(f"Error adding patient: {str(e)}")
         return jsonify({'error': str(e)}), 500
-
 
 # @app.route('/get-patient-data', methods=['GET'])
 # def get_patient_data():
@@ -336,7 +336,6 @@ def add_patient():
 #         print(f"Error fetching patients: {str(e)}")
 #         return jsonify({'error': str(e)}), 500
 
-
 @app.route('/get-patient-data', methods=['GET'])
 def get_patient_data():
     try:
@@ -360,15 +359,14 @@ def get_patient_data():
                 'name': patient.name,
                 'gender': patient.gender,
                 'age': patient.age,
-                'reporting_time': patient.reporting_time,
-                # Updated field names and new fields
-                'vaccination': patient.vaccination,           # Previously patient_history_url
-                'lab_report': patient.lab_report,            # Previously lab_report_url
-                'imaging': patient.imaging,                  # New field
-                'doctor_note': patient.doctor_note,         # New field
-                'other': patient.other,                     # New field
+                'reporting_time': patient.reporting_time,  # Use the stored datetime string directly
+                'vaccination': patient.vaccination,
+                'lab_report': patient.lab_report,
+                'imaging': patient.imaging,
+                'doctor_note': patient.doctor_note,
+                'other': patient.other,
                 'assigned_doctor': doctor.name,
-                'url_counts': url_counts,                   # Added counts of URLs in each field
+                'url_counts': url_counts,
                 'estimated_arrival_time': patient.estimated_arrival_time,
                 'actual_waiting_time': patient.actual_waiting_time
             })
@@ -438,7 +436,7 @@ def add_time_slots():
 
         try:
             # Fixed datetime parsing
-            slot_date = datetime.datetime.strptime(date, '%Y-%m-%d').date()
+            slot_date = datetime.strptime(date, '%Y-%m-%d').date()
         except ValueError as e:
             return jsonify({'message': f'Invalid date format: {str(e)}'}), 400
 
@@ -510,7 +508,7 @@ def get_doctor_slots_flutter():
 
         try:
             # Fixed datetime parsing
-            slot_date = datetime.datetime.strptime(date, '%Y-%m-%d').date()
+            slot_date = datetime.strptime(date, '%Y-%m-%d').date()
         except ValueError as e:
             return jsonify({
                 'success': False,
@@ -809,7 +807,7 @@ def create_prescription():
         
         # Create prescription record
         new_prescription = Prescription(
-            date=datetime.datetime.strptime(data['date'], '%Y-%m-%d').date(),
+            date=datetime.strptime(data['date'], '%Y-%m-%d').date(),
             medications=data['medications'],
             remarks=data.get('remarks'),
             next_appointment=datetime.strptime(data['nextAppointment'], '%Y-%m-%dT%H:%M:%S.%fZ') if data.get('nextAppointment') else None,
