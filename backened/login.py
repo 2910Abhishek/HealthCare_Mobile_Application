@@ -1,7 +1,4 @@
 
-
-
-
 from flask import Flask, request, jsonify, send_file
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -64,13 +61,17 @@ class Patient(db.Model):
     gender = db.Column(db.String(50), nullable=False)
     age = db.Column(db.Integer, nullable=False)
     reporting_time = db.Column(db.String(50), nullable=False)
-    patient_history_url = db.Column(db.String(255), nullable=True)
-    lab_report_url = db.Column(db.String(255), nullable=True)
+    vaccination = db.Column(db.Text, nullable=True)  # Replaced patient_history_url
+    lab_report = db.Column(db.Text, nullable=True)  # Replaced lab_report_url
+    imaging = db.Column(db.Text, nullable=True)     # New field
+    doctor_note = db.Column(db.Text, nullable=True) # New field
+    other = db.Column(db.Text, nullable=True)       # New field
     doctor_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     latitude = db.Column(db.Float)
     longitude = db.Column(db.Float)
     estimated_arrival_time = db.Column(db.String(20))
     actual_waiting_time = db.Column(db.Integer, default=0)
+
 
 
 
@@ -119,10 +120,120 @@ def login():
     else:
         return jsonify({'message': 'Invalid email or password'}), 401
 
+# @app.route('/add-patient', methods=['POST'])
+# def add_patient():
+#     try:
+#         data = request.json
+        
+#         # Calculate travel time using OpenRouteService
+#         patient_coordinates = [
+#             float(data.get('longitude')), 
+#             float(data.get('latitude'))
+#         ]
+        
+#         # Get route and duration
+#         route = ors_client.directions(
+#             coordinates=[patient_coordinates, HOSPITAL_COORDINATES],
+#             profile='driving-car',
+#             format='geojson'
+#         )
+        
+#         # Duration is in seconds, convert to minutes
+#         travel_time_minutes = route['features'][0]['properties']['segments'][0]['duration'] / 60
+        
+#         # Add buffer time (20% of travel time or minimum 10 minutes)
+#         buffer_time = max(travel_time_minutes * 0.2, 10)
+#         total_time_needed = travel_time_minutes + buffer_time
+        
+#         # Calculate when patient should leave
+#         reporting_time = datetime.datetime.strptime(data.get('reporting_time'), '%H:%M')
+#         leave_time = reporting_time - timedelta(minutes=total_time_needed)
+        
+#         new_patient = Patient(
+#             name=data.get('name'),
+#             gender=data.get('gender'),
+#             age=data.get('age'),
+#             reporting_time=data.get('reporting_time'),
+#             patient_history_url=data.get('patient_history_url'),
+#             lab_report_url=data.get('lab_report_url'),
+#             doctor_id=data.get('doctor_id'),
+#             latitude=data.get('latitude'),
+#             longitude=data.get('longitude'),
+#             estimated_arrival_time=leave_time.strftime('%H:%M')
+#         )
+
+#         db.session.add(new_patient)
+#         db.session.commit()
+
+#         doctor = User.query.get(new_patient.doctor_id)
+#         patient_data = {
+#             'id': new_patient.id,
+#             'name': new_patient.name,
+#             'gender': new_patient.gender,
+#             'age': new_patient.age,
+#             'reporting_time': new_patient.reporting_time,
+#             'patient_history_url': new_patient.patient_history_url,
+#             'lab_report_url': new_patient.lab_report_url,
+#             'assigned_doctor': doctor.name,
+#             'travel_time_minutes': round(travel_time_minutes),
+#             'suggested_leave_time': leave_time.strftime('%H:%M'),
+#             'estimated_arrival_time': new_patient.estimated_arrival_time
+#         }
+        
+#         # Emit the socket event
+#         socketio.emit('new_patient', patient_data, namespace='/')
+        
+#         return jsonify({
+#             'message': 'Patient added successfully', 
+#             'patient': patient_data,
+#             'travel_details': {
+#                 'travel_time_minutes': round(travel_time_minutes),
+#                 'buffer_time_minutes': round(buffer_time),
+#                 'suggested_leave_time': leave_time.strftime('%H:%M')
+#             }
+#         })
+#     except Exception as e:
+#         print(f"Error adding patient: {str(e)}")
+#         return jsonify({'error': str(e)}), 500
+
+from urllib.parse import urlparse
+import re
+
+def validate_urls(urls_string):
+    """
+    Validate a comma-separated string of URLs
+    Returns (valid_urls, any_invalid)
+    """
+    if not urls_string:
+        return "", False
+        
+    urls = urls_string.split(',')
+    valid_urls = []
+    any_invalid = False
+    
+    for url in urls:
+        url = url.strip()
+        try:
+            result = urlparse(url)
+            if all([result.scheme, result.netloc]):
+                valid_urls.append(url)
+            else:
+                any_invalid = True
+        except:
+            any_invalid = True
+            
+    return ','.join(valid_urls), any_invalid
 @app.route('/add-patient', methods=['POST'])
 def add_patient():
     try:
         data = request.json
+        
+        # Parse the datetime string
+        try:
+            reporting_datetime = datetime.datetime.strptime(data.get('reporting_time'), '%Y-%m-%d %H:%M')
+            reporting_time = reporting_datetime.strftime('%H:%M')  # Extract time for storage
+        except ValueError as e:
+            return jsonify({'error': f"time data '{data.get('reporting_time')}' does not match format 'YYYY-MM-DD HH:mm'"}), 400
         
         # Calculate travel time using OpenRouteService
         patient_coordinates = [
@@ -145,16 +256,18 @@ def add_patient():
         total_time_needed = travel_time_minutes + buffer_time
         
         # Calculate when patient should leave
-        reporting_time = datetime.datetime.strptime(data.get('reporting_time'), '%H:%M')
-        leave_time = reporting_time - timedelta(minutes=total_time_needed)
+        leave_time = reporting_datetime - timedelta(minutes=total_time_needed)
         
         new_patient = Patient(
             name=data.get('name'),
             gender=data.get('gender'),
             age=data.get('age'),
-            reporting_time=data.get('reporting_time'),
-            patient_history_url=data.get('patient_history_url'),
-            lab_report_url=data.get('lab_report_url'),
+            reporting_time=reporting_time,  # Store only the time
+            vaccination=data.get('vaccination'),
+            lab_report=data.get('lab_report'),
+            imaging=data.get('imaging'),
+            doctor_note=data.get('doctor_note'),
+            other=data.get('other'),
             doctor_id=data.get('doctor_id'),
             latitude=data.get('latitude'),
             longitude=data.get('longitude'),
@@ -170,13 +283,16 @@ def add_patient():
             'name': new_patient.name,
             'gender': new_patient.gender,
             'age': new_patient.age,
-            'reporting_time': new_patient.reporting_time,
-            'patient_history_url': new_patient.patient_history_url,
-            'lab_report_url': new_patient.lab_report_url,
+            'reporting_time': data.get('reporting_time'),  # Return the full datetime
+            'vaccination': new_patient.vaccination,
+            'lab_report': new_patient.lab_report,
+            'imaging': new_patient.imaging,
+            'doctor_note': new_patient.doctor_note,
+            'other': new_patient.other,
             'assigned_doctor': doctor.name,
             'travel_time_minutes': round(travel_time_minutes),
-            'suggested_leave_time': leave_time.strftime('%H:%M'),
-            'estimated_arrival_time': new_patient.estimated_arrival_time
+            'suggested_leave_time': leave_time.strftime('%Y-%m-%d %H:%M'),  # Full datetime
+            'estimated_arrival_time': leave_time.strftime('%Y-%m-%d %H:%M')  # Full datetime
         }
         
         # Emit the socket event
@@ -188,13 +304,37 @@ def add_patient():
             'travel_details': {
                 'travel_time_minutes': round(travel_time_minutes),
                 'buffer_time_minutes': round(buffer_time),
-                'suggested_leave_time': leave_time.strftime('%H:%M')
+                'suggested_leave_time': leave_time.strftime('%Y-%m-%d %H:%M')
             }
         })
     except Exception as e:
         print(f"Error adding patient: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+
+# @app.route('/get-patient-data', methods=['GET'])
+# def get_patient_data():
+#     try:
+#         patients = Patient.query.all()
+#         patient_data = []
+
+#         for patient in patients:
+#             doctor = User.query.get(patient.doctor_id)
+#             patient_data.append({
+#                 'id': patient.id,
+#                 'name': patient.name,
+#                 'gender': patient.gender,
+#                 'age': patient.age,
+#                 'reporting_time': patient.reporting_time,
+#                 'patient_history_url': patient.patient_history_url,
+#                 'lab_report_url': patient.lab_report_url,
+#                 'assigned_doctor': doctor.name
+#             })
+
+#         return jsonify(patient_data)
+#     except Exception as e:
+#         print(f"Error fetching patients: {str(e)}")
+#         return jsonify({'error': str(e)}), 500
 
 
 @app.route('/get-patient-data', methods=['GET'])
@@ -205,22 +345,38 @@ def get_patient_data():
 
         for patient in patients:
             doctor = User.query.get(patient.doctor_id)
+            
+            # Calculate URL counts
+            url_counts = {
+                'vaccination': len(patient.vaccination.split(',')) if patient.vaccination else 0,
+                'lab_report': len(patient.lab_report.split(',')) if patient.lab_report else 0,
+                'imaging': len(patient.imaging.split(',')) if patient.imaging else 0,
+                'doctor_note': len(patient.doctor_note.split(',')) if patient.doctor_note else 0,
+                'other': len(patient.other.split(',')) if patient.other else 0
+            }
+            
             patient_data.append({
                 'id': patient.id,
                 'name': patient.name,
                 'gender': patient.gender,
                 'age': patient.age,
                 'reporting_time': patient.reporting_time,
-                'patient_history_url': patient.patient_history_url,
-                'lab_report_url': patient.lab_report_url,
-                'assigned_doctor': doctor.name
+                # Updated field names and new fields
+                'vaccination': patient.vaccination,           # Previously patient_history_url
+                'lab_report': patient.lab_report,            # Previously lab_report_url
+                'imaging': patient.imaging,                  # New field
+                'doctor_note': patient.doctor_note,         # New field
+                'other': patient.other,                     # New field
+                'assigned_doctor': doctor.name,
+                'url_counts': url_counts,                   # Added counts of URLs in each field
+                'estimated_arrival_time': patient.estimated_arrival_time,
+                'actual_waiting_time': patient.actual_waiting_time
             })
 
         return jsonify(patient_data)
     except Exception as e:
         print(f"Error fetching patients: {str(e)}")
         return jsonify({'error': str(e)}), 500
-    
     
 
 
