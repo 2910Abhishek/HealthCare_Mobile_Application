@@ -160,11 +160,21 @@ function SignUpForm() {
   const [fullName, setFullName] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [userPassword, setUserPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [generalError, setGeneralError] = useState("");
   const [inputErrors, setInputErrors] = useState({
     fullName: "",
     userEmail: "",
     userPassword: "",
+    confirmPassword: "",
+  });
+  
+  const [passwordRequirements, setPasswordRequirements] = useState({
+    length: false,
+    number: false,
+    uppercase: false,
+    lowercase: false,
+    special: false
   });
 
   const { login } = useAuth();
@@ -172,13 +182,11 @@ function SignUpForm() {
 
   // Initialize Socket.IO connection
   useEffect(() => {
-    // Create socket connection
     const socket = io("http://localhost:5000", {
       transports: ["websocket"],
       autoConnect: true,
     });
 
-    // Connection event handlers
     socket.on("connect", () => {
       console.log("Connected to Socket.IO server");
     });
@@ -187,23 +195,43 @@ function SignUpForm() {
       console.log("Disconnected from Socket.IO server");
     });
 
-    // Listen for new doctor registration events
     socket.on("new_doctor_registered", (doctorData) => {
       console.log("New doctor registered:", doctorData);
-      // You can handle the received doctor data here if needed
-      // For example, you might want to show a success message or
-      // store the data in context/state
     });
 
-    // Cleanup on component unmount
     return () => {
       socket.disconnect();
     };
   }, []);
 
+  // Password validation
+  useEffect(() => {
+    const requirements = {
+      length: userPassword.length >= 8,
+      number: /\d/.test(userPassword),
+      uppercase: /[A-Z]/.test(userPassword),
+      lowercase: /[a-z]/.test(userPassword),
+      special: /[!@#$%^&*(),.?":{}|<>]/.test(userPassword)
+    };
+    
+    setPasswordRequirements(requirements);
+  }, [userPassword]);
+
+  const getPasswordStrength = () => {
+    const metRequirements = Object.values(passwordRequirements).filter(Boolean).length;
+    if (metRequirements <= 2) return { text: "Weak", color: "#ff4d4f" };
+    if (metRequirements <= 4) return { text: "Medium", color: "#faad14" };
+    return { text: "Strong", color: "#52c41a" };
+  };
+
   const handleSignUp = async () => {
     let isValid = true;
-    const newInputErrors = { fullName: "", userEmail: "", userPassword: "" };
+    const newInputErrors = {
+      fullName: "",
+      userEmail: "",
+      userPassword: "",
+      confirmPassword: ""
+    };
 
     if (!fullName) {
       newInputErrors.fullName = "Full Name is required";
@@ -217,41 +245,62 @@ function SignUpForm() {
       newInputErrors.userPassword = "Password is required";
       isValid = false;
     }
+    if (!confirmPassword) {
+      newInputErrors.confirmPassword = "Please confirm your password";
+      isValid = false;
+    }
+    if (userPassword !== confirmPassword) {
+      newInputErrors.confirmPassword = "Passwords do not match";
+      isValid = false;
+    }
+
+    // Check password requirements
+    const metRequirements = Object.values(passwordRequirements).filter(Boolean).length;
+    if (metRequirements < 5) {
+      newInputErrors.userPassword = "Password does not meet all requirements";
+      isValid = false;
+    }
 
     setInputErrors(newInputErrors);
 
     if (!isValid) {
-      setGeneralError("Please fill in all required fields.");
+      setGeneralError("Please fill in all required fields correctly.");
       return;
     }
 
     try {
       const response = await fetch("http://localhost:5000/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ 
-          name: fullName, 
-          email: userEmail, 
-          password: userPassword 
-        }),
+          method: "POST",
+          headers: {
+              "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ 
+              name: fullName, 
+              email: userEmail, 
+              password: userPassword 
+          }),
       });
-
+  
       const data = await response.json();
-
+  
       if (response.ok) {
-        login(data.user.name);
-        // The Socket.IO server will automatically emit the doctor details after 2 seconds
-        // We can navigate to dashboard immediately since the socket will handle the data
-        navigate("/dashboard");
+          login(data.user.name);
+          navigate("/dashboard");
       } else {
-        setGeneralError(data.error || "Registration failed");
+          // Check specifically for email already exists error
+          if (response.status === 400 && data.error === 'Email address already registered') {
+              setInputErrors(prev => ({
+                  ...prev,
+                  userEmail: "This email is already registered"
+              }));
+          } else {
+              setGeneralError(data.error || "Registration failed");
+          }
       }
-    } catch (err) {
+  } catch (err) {
       console.error("Error:", err);
       setGeneralError("Something went wrong");
-    }
+  }
   };
 
   const handleInputChange = (e) => {
@@ -270,6 +319,11 @@ function SignUpForm() {
       setUserPassword(value);
       if (value) {
         setInputErrors((prevErrors) => ({ ...prevErrors, userPassword: "" }));
+      }
+    } else if (id === "confirmPasswordInput") {
+      setConfirmPassword(value);
+      if (value) {
+        setInputErrors((prevErrors) => ({ ...prevErrors, confirmPassword: "" }));
       }
     }
   };
@@ -320,6 +374,63 @@ function SignUpForm() {
             />
             {inputErrors.userPassword && (
               <span className="signup-error-text">{inputErrors.userPassword}</span>
+            )}
+            
+            {userPassword && (
+              <div className="password-requirements" style={{ marginTop: "10px", padding: "10px", backgroundColor: "#f5f5f5", borderRadius: "5px" }}>
+                <div style={{ 
+                  marginBottom: "8px", 
+                  color: getPasswordStrength().color, 
+                  fontWeight: "500" 
+                }}>
+                  Password Strength: {getPasswordStrength().text}
+                </div>
+                <div style={{ fontSize: "12px" }}>
+                  <div style={{ 
+                    color: passwordRequirements.length ? "#52c41a" : "#ff4d4f",
+                    marginBottom: "4px"
+                  }}>
+                    • Minimum 8 characters {passwordRequirements.length ? "✓" : "✗"}
+                  </div>
+                  <div style={{ 
+                    color: passwordRequirements.number ? "#52c41a" : "#ff4d4f",
+                    marginBottom: "4px"
+                  }}>
+                    • Contains a number {passwordRequirements.number ? "✓" : "✗"}
+                  </div>
+                  <div style={{ 
+                    color: passwordRequirements.uppercase ? "#52c41a" : "#ff4d4f",
+                    marginBottom: "4px"
+                  }}>
+                    • Contains uppercase letter {passwordRequirements.uppercase ? "✓" : "✗"}
+                  </div>
+                  <div style={{ 
+                    color: passwordRequirements.lowercase ? "#52c41a" : "#ff4d4f",
+                    marginBottom: "4px"
+                  }}>
+                    • Contains lowercase letter {passwordRequirements.lowercase ? "✓" : "✗"}
+                  </div>
+                  <div style={{ 
+                    color: passwordRequirements.special ? "#52c41a" : "#ff4d4f"
+                  }}>
+                    • Contains special character {passwordRequirements.special ? "✓" : "✗"}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="signup-form-group">
+            <input
+              type="password"
+              id="confirmPasswordInput"
+              placeholder="Confirm Password"
+              value={confirmPassword}
+              onChange={handleInputChange}
+              className={inputErrors.confirmPassword ? "signup-input-error" : ""}
+            />
+            {inputErrors.confirmPassword && (
+              <span className="signup-error-text">{inputErrors.confirmPassword}</span>
             )}
           </div>
 

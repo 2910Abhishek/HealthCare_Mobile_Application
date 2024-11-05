@@ -945,10 +945,45 @@ def get_patient_prescriptions(patient_id):
             'error': str(e)
         }), 500
         
+# @app.route('/register', methods=['POST'])
+# def register():
+#     try:
+#         data = request.json
+#         hashed_password = generate_password_hash(data['password'], method='pbkdf2:sha256')
+        
+#         new_user = User(
+#             name=data.get('name'),
+#             email=data.get('email'),
+#             password=hashed_password
+#         )
+        
+#         db.session.add(new_user)
+#         db.session.commit()
+        
+#         return jsonify({
+#             'message': 'User registered successfully',
+#             'user': {
+#                 'id': new_user.id,
+#                 'name': new_user.name,
+#                 'email': new_user.email
+#             }
+#         }), 201
+#     except Exception as e:
+#         db.session.rollback()
+#         return jsonify({'error': str(e)}), 500
+    
 @app.route('/register', methods=['POST'])
 def register():
     try:
         data = request.json
+        
+        # Check if email already exists
+        existing_user = User.query.filter_by(email=data.get('email')).first()
+        if existing_user:
+            return jsonify({
+                'error': 'Email address already registered'
+            }), 400
+            
         hashed_password = generate_password_hash(data['password'], method='pbkdf2:sha256')
         
         new_user = User(
@@ -968,11 +1003,10 @@ def register():
                 'email': new_user.email
             }
         }), 201
+
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
-    
-
 
 if __name__ == '__main__':
     with app.app_context():
