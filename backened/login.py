@@ -1,3 +1,4 @@
+from base64 import b64encode
 from flask import Flask, request, jsonify, send_file
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -15,6 +16,7 @@ import json
 import os
 from dotenv import load_dotenv  
 from openrouteservice import client
+from sqlalchemy import LargeBinary
 
 # Configure OpenRouteService
 ors_client = client.Client(key='5b3ce3597851110001cf6248db523009310242dfb5e95e5cb0e24285')
@@ -46,11 +48,38 @@ class Medicine(db.Model):
     doctor_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     created_at = db.Column(db.DateTime, server_default=db.func.now()) 
 
+# class User(db.Model):
+#     id = db.Column(db.Integer, primary_key=True)
+#     name = db.Column(db.String(255), nullable=True)
+#     email = db.Column(db.String(255), unique=True, nullable=False)
+#     password = db.Column(db.String(255), nullable=False)
+
+
+
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(255), nullable=True)
+    name = db.Column(db.String(255), nullable=False)
     email = db.Column(db.String(255), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
+    speciality = db.Column(db.String(255), nullable=False)
+    hospital_name = db.Column(db.String(255), nullable=False)
+    profile_image = db.Column(LargeBinary, nullable=False)  # Store image directly as binary
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def to_dict(self):
+        """Convert user object to dictionary with base64 encoded image"""
+        return {
+            'id': self.id,
+            'name': self.name,
+            'email': self.email,
+            'speciality': self.speciality,
+            'hospital_name': self.hospital_name,
+            'profile_image': f"data:image/jpeg;base64,{b64encode(self.profile_image).decode('utf-8')}" if self.profile_image else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
 
 class Patient(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -972,41 +1001,96 @@ def get_patient_prescriptions(patient_id):
 #         db.session.rollback()
 #         return jsonify({'error': str(e)}), 500
     
+# @app.route('/register', methods=['POST'])
+# def register():
+#     try:
+#         data = request.json
+        
+#         # Check if email already exists
+#         existing_user = User.query.filter_by(email=data.get('email')).first()
+#         if existing_user:
+#             return jsonify({
+#                 'error': 'Email address already registered'
+#             }), 400
+            
+#         hashed_password = generate_password_hash(data['password'], method='pbkdf2:sha256')
+        
+#         new_user = User(
+#             name=data.get('name'),
+#             email=data.get('email'),
+#             password=hashed_password
+#         )
+        
+#         db.session.add(new_user)
+#         db.session.commit()
+        
+#         return jsonify({
+#             'message': 'User registered successfully',
+#             'user': {
+#                 'id': new_user.id,
+#                 'name': new_user.name,
+#                 'email': new_user.email
+#             }
+#         }), 201
+
+#     except Exception as e:
+#         db.session.rollback()
+#         return jsonify({'error': str(e)}), 500
 @app.route('/register', methods=['POST'])
 def register():
     try:
-        data = request.json
+        # Check if the post request has the file part
+        if 'profileImage' not in request.files:
+            return jsonify({'error': 'No profile image provided'}), 400
+        
+        file = request.files['profileImage']
+        if file.filename == '':
+            return jsonify({'error': 'No selected file'}), 400
+        
+        # Read and encode image
+        image_data = file.read()
         
         # Check if email already exists
-        existing_user = User.query.filter_by(email=data.get('email')).first()
+        email = request.form.get('email')
+        existing_user = User.query.filter_by(email=email).first()
         if existing_user:
             return jsonify({
                 'error': 'Email address already registered'
             }), 400
-            
-        hashed_password = generate_password_hash(data['password'], method='pbkdf2:sha256')
+        
+        # Create new user
+        hashed_password = generate_password_hash(request.form.get('password'), method='pbkdf2:sha256')
         
         new_user = User(
-            name=data.get('name'),
-            email=data.get('email'),
-            password=hashed_password
+            name=request.form.get('name'),
+            email=email,
+            password=hashed_password,
+            speciality=request.form.get('speciality'),
+            hospital_name=request.form.get('hospitalName'),
+            profile_image=image_data  # Store binary image data directly
         )
         
         db.session.add(new_user)
         db.session.commit()
+        
+        # Convert binary image to base64 for response
+        image_b64 = b64encode(image_data).decode('utf-8')
         
         return jsonify({
             'message': 'User registered successfully',
             'user': {
                 'id': new_user.id,
                 'name': new_user.name,
-                'email': new_user.email
+                'email': new_user.email,
+                'speciality': new_user.speciality,
+                'hospital_name': new_user.hospital_name,
+                'profile_image': f"data:image/jpeg;base64,{image_b64}"
             }
         }), 201
 
     except Exception as e:
-        db.session.rollback()
         return jsonify({'error': str(e)}), 500
+
 
 if __name__ == '__main__':
     with app.app_context():
