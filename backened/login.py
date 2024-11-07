@@ -250,7 +250,15 @@ def validate_urls(urls_string):
             
     return ','.join(valid_urls), any_invalid
 
-
+@socketio.on('update_consulted')
+def update_consulted(data):
+    patient_id = data['patient_id']
+    patient = Patient.query.get(patient_id)
+    print(patient.name)
+    if patient:
+        emit('consulted_patient', {'name': patient.name})
+    else:
+        emit('error', {'message': 'Patient not found'})
 
 
 @app.route('/add-patient', methods=['POST'])
