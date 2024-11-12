@@ -257,18 +257,23 @@ def validate_urls(urls_string):
 def add_patient():
     try:
         data = request.json
+        print("Received data:", data)  # Debugging statement
         
         # Parse the datetime string
         try:
             reporting_datetime = datetime.strptime(data.get('reporting_time'), '%Y-%m-%d %H:%M')
+            print("Parsed reporting time:", reporting_datetime)  # Debugging statement
         except ValueError as e:
-            return jsonify({'error': f"time data '{data.get('reporting_time')}' does not match format 'YYYY-MM-DD HH:mm'"}), 400
+            error_message = f"time data '{data.get('reporting_time')}' does not match format 'YYYY-MM-DD HH:mm'"
+            print(error_message)  # Debugging statement
+            return jsonify({'error': error_message}), 400
         
         # Calculate travel time using OpenRouteService
         patient_coordinates = [
             float(data.get('longitude')), 
             float(data.get('latitude'))
         ]
+        print("Patient coordinates:", patient_coordinates)  # Debugging statement
         
         # Get route and duration
         route = ors_client.directions(
@@ -276,16 +281,21 @@ def add_patient():
             profile='driving-car',
             format='geojson'
         )
+        print("Route response:", route)  # Debugging statement
         
         # Duration is in seconds, convert to minutes
         travel_time_minutes = route['features'][0]['properties']['segments'][0]['duration'] / 60
+        print("Calculated travel time (minutes):", travel_time_minutes)  # Debugging statement
         
         # Add buffer time (20% of travel time or minimum 10 minutes)
         buffer_time = max(travel_time_minutes * 0.2, 10)
+        print("Calculated buffer time (minutes):", buffer_time)  # Debugging statement
         total_time_needed = travel_time_minutes + buffer_time
+        print("Total time needed (minutes):", total_time_needed)  # Debugging statement
         
         # Calculate when patient should leave
         leave_time = reporting_datetime - timedelta(minutes=total_time_needed)
+        print("Calculated leave time:", leave_time)  # Debugging statement
         
         new_patient = Patient(
             name=data.get('name'),
@@ -302,11 +312,15 @@ def add_patient():
             longitude=data.get('longitude'),
             estimated_arrival_time=leave_time.strftime('%H:%M')
         )
-
+        
+        print("Patient object created:", new_patient)  # Debugging statement
+        
         db.session.add(new_patient)
         db.session.commit()
+        print("Patient added to the database.")  # Debugging statement
 
         doctor = User.query.get(new_patient.doctor_id)
+        print("Assigned doctor:", doctor.name)  # Debugging statement
         
         patient_data = {
             'id': new_patient.id,
@@ -324,9 +338,11 @@ def add_patient():
             'suggested_leave_time': leave_time.strftime('%Y-%m-%d %H:%M'),
             'estimated_arrival_time': leave_time.strftime('%Y-%m-%d %H:%M')
         }
+        print("Patient data to be returned:", patient_data)  # Debugging statement
         
         # Emit the socket event
         socketio.emit('new_patient', patient_data)
+        print("Socket event 'new_patient' emitted.")  # Debugging statement
         
         return jsonify({
             'message': 'Patient added successfully', 
@@ -338,8 +354,9 @@ def add_patient():
             }
         })
     except Exception as e:
-        print(f"Error adding patient: {str(e)}")
+        print(f"Error adding patient: {str(e)}")  # Debugging statement
         return jsonify({'error': str(e)}), 500
+
 
 # @app.route('/get-patient-data', methods=['GET'])
 # def get_patient_data():
@@ -1067,15 +1084,15 @@ def register():
             password=hashed_password,
             speciality=request.form.get('speciality'),
             hospital_name=request.form.get('hospitalName'),
-            profile_image=image_data  # Store binary image data directly
+            profile_image=image_data
         )
-        
+
         db.session.add(new_user)
         db.session.commit()
-        
+
         # Convert binary image to base64 for response
         image_b64 = b64encode(image_data).decode('utf-8')
-        
+
         return jsonify({
             'message': 'User registered successfully',
             'user': {
@@ -1083,13 +1100,62 @@ def register():
                 'name': new_user.name,
                 'email': new_user.email,
                 'speciality': new_user.speciality,
-                'hospital_name': new_user.hospital_name,
+                'hospital_name': new_user.hospital_name, # Include the hospital name
                 'profile_image': f"data:image/jpeg;base64,{image_b64}"
             }
         }), 201
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+@app.route('/doctors', methods=['POST'])
+def get_doctors_by_hospital():
+    try:
+        # Get the hospital name from the POST body
+        data = request.get_json()
+        print(f"Received data: {data}")  # Add this line to debug
+        
+        hospital_name = data.get('hospitalName')
+        
+        if not hospital_name:
+            return jsonify({'error': 'Hospital name is required'}), 400
+        
+        # Fetch doctors associated with the hospital
+        doctors = User.query.filter_by(hospital_name=hospital_name).all()
+        
+        if not doctors:
+            return jsonify({'error': 'No doctors found for this hospital'}), 404
+        
+        # Convert each doctor to dictionary format
+        doctors_data = [doctor.to_dict() for doctor in doctors]
+        
+        return jsonify({'doctors': doctors_data}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+
+
+
+@app.route('/hospitals', methods=['GET'])
+def get_all_hospitals():
+    try:
+        # Fetch unique hospital names from User (doctor) records
+        hospitals = db.session.query(User.hospital_name).distinct().all()
+        
+        # Format the response
+        hospital_names = [hospital[0] for hospital in hospitals]
+        
+        return jsonify({'hospitals': hospital_names}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+
+
 
 
 if __name__ == '__main__':

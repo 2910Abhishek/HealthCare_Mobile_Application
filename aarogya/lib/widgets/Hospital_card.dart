@@ -1,23 +1,23 @@
-import 'package:aarogya/screens/DoctorScreen.dart';
 import 'package:flutter/material.dart';
+import 'package:aarogya/screens/DoctorScreen.dart'; // Ensure the import path is correct
 
 class HospitalCard extends StatelessWidget {
-  HospitalCard(
-      {Key? key,
-      required this.name,
-      required this.imagePath,
-      this.rating = "5.0",
-      required this.address});
-
   final String name;
   final String imagePath;
-  final String rating;
   final String address;
+
+  HospitalCard({
+    Key? key,
+    required this.name,
+    required this.imagePath,
+    required this.address,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
+        // Navigate to DoctorScreen and pass the selected hospital name
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -56,19 +56,6 @@ class HospitalCard extends StatelessWidget {
                         fontSize: 14,
                         color: Colors.grey,
                       ),
-                    ),
-                    Row(
-                      children: [
-                        Icon(Icons.star, color: Colors.yellow, size: 18),
-                        SizedBox(width: 4),
-                        Text(
-                          rating,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
                     ),
                   ],
                 ),

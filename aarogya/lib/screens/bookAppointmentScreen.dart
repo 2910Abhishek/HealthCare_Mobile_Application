@@ -22,14 +22,12 @@ class BookAppointmentScreen extends StatefulWidget {
   final String speciality;
   final String hospitalName;
   final String imagePath;
-  final String rating;
   final int doctorId; // Add this
 
   BookAppointmentScreen({
     required this.doctorName,
     required this.speciality,
     required this.hospitalName,
-    required this.rating,
     required this.imagePath,
     required this.doctorId, // Add this
   });
@@ -84,7 +82,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
           'Content-Type': 'application/json',
         },
         body: json.encode({
-          'doctorId': 2,
+          'doctorId': widget.doctorId,
           'date': DateFormat('yyyy-MM-dd').format(selectedDate),
         }),
       );
@@ -184,8 +182,16 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                         Row(
                           children: [
                             CircleAvatar(
-                              radius: 40,
-                              backgroundImage: AssetImage(widget.imagePath),
+                              radius: 30,
+                              backgroundImage: widget.imagePath.startsWith(
+                                          'data:image/jpeg;base64,') ||
+                                      widget.imagePath
+                                          .startsWith('data:image/png;base64,')
+                                  ? MemoryImage(base64Decode(widget.imagePath
+                                      .split(',')
+                                      .last)) // Decode and load base64 image
+                                  : AssetImage('assets/images/doctor_image.png')
+                                      as ImageProvider, // Fallback to asset image
                             ),
                             SizedBox(width: 16),
                             Expanded(
@@ -210,10 +216,6 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                                     children: [
                                       Icon(Icons.star,
                                           color: Colors.yellow, size: 16),
-                                      Text(
-                                        widget.rating,
-                                        style: TextStyle(fontSize: 14),
-                                      ),
                                       Text(
                                         " (80 reviews)",
                                         style: TextStyle(
@@ -511,6 +513,15 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
       final Position position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high);
 
+      // Get current date and time, format them properly
+      final now = DateTime.now();
+      final formattedDate =
+          DateFormat('yyyy-MM-dd').format(now); // Get today's date
+      final formattedTime =
+          '${selectedTime!.hour}:${selectedTime!.minute}'; // Get selected time
+      final reportingTime =
+          '$formattedDate $formattedTime'; // Combine date and time into 'YYYY-MM-DD HH:mm'
+
       // First make the API call to add patient with location
       final response = await http.post(
         Uri.parse('http://192.168.127.175:5000/add-patient'),
@@ -521,9 +532,8 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
           'name': _auth.currentUser!.displayName,
           'gender': 'Not Specified',
           'age': 0,
-          'reporting_time': '${selectedTime!.hour}:${selectedTime!.minute}',
+          'reporting_time': reportingTime, // Pass combined date and time
           'doctor_id': widget.doctorId,
-          // Add location data
           'latitude': position.latitude,
           'longitude': position.longitude,
         }),
@@ -699,7 +709,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   }
 
   Future<bool> _sendEmail(String filePath) async {
-    final smtpServer = gmail('22cs046@charusat.edu.in', 'bfyn bjmy bpty qsfx');
+    final smtpServer = gmail('22cs046@charusat.edu.in', 'uqhz gqed gghr govc');
     final message = Message()
       ..from = Address('22cs046@charusat.edu.in', '22cs046')
       ..recipients.add(_auth.currentUser!.email)

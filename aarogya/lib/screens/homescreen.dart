@@ -1,12 +1,13 @@
+import 'dart:convert';
 import 'package:aarogya/utils/colors.dart';
 import 'package:aarogya/widgets/Doctor_Category.dart';
 import 'package:aarogya/widgets/Hospital_card.dart';
-import 'package:aarogya/widgets/doctor_card.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_statusbarcolor_ns/flutter_statusbarcolor_ns.dart';
+import 'package:http/http.dart' as http;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -22,24 +23,8 @@ class _HomeScreenState extends State<HomeScreen> {
   String _username = 'Guest';
   TextEditingController searchController = TextEditingController();
   bool isSearching = false;
-
-  List<Map<String, String>> hospitals = [
-    {
-      "name": "Nursing Home Hospital",
-      "imagePath": "assets/images/doctor_image.png",
-      "address": "vadodara",
-      "rating": "5.0",
-    },
-    {
-      "name": "Vrundavan Hospital",
-      "imagePath": "assets/images/doctor_image.png",
-      "address": "vadodara",
-      "rating": "4.8",
-    },
-    // Add more hospitals here
-  ];
-
-  List<Map<String, String>> filteredHospitals = [];
+  List<Map<String, dynamic>> hospitals = [];
+  List<Map<String, dynamic>> filteredHospitals = [];
 
   @override
   void initState() {
@@ -53,6 +38,9 @@ class _HomeScreenState extends State<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _setStatusBarColor();
     });
+
+    // Fetch hospital data on screen load
+    fetchHospitals();
   }
 
   @override
@@ -87,6 +75,37 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // Function to fetch hospital data from API
+  Future<void> fetchHospitals() async {
+    try {
+      final response =
+          await http.get(Uri.parse('http://192.168.127.175:5000/hospitals'));
+
+      if (response.statusCode == 200) {
+        Map<String, dynamic> data = jsonDecode(response.body);
+
+        // Ensure the response is parsed correctly
+        List<String> hospitalNames = List<String>.from(data['hospitals']);
+
+        setState(() {
+          hospitals = hospitalNames.map((name) {
+            return {
+              "name": name,
+              "imagePath":
+                  'assets/images/doctor_image.png', // You can adjust this if you have image URLs
+              "address": '', // Replace with actual addresses if available
+            };
+          }).toList();
+          filteredHospitals = hospitals;
+        });
+      } else {
+        throw Exception('Failed to load hospitals');
+      }
+    } catch (e) {
+      print("Error fetching hospitals: $e");
+    }
+  }
+
   void searchHospitals(String query) {
     setState(() {
       isSearching = query.isNotEmpty;
@@ -101,87 +120,84 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     _setStatusBarColor();
 
-    return PopScope(
-      canPop: false,
-      child: Scaffold(
-        body: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            // App Bar
-            Container(
-              padding: EdgeInsets.only(
-                top: MediaQuery.of(context).padding.top,
-                left: 16,
-                right: 16,
-                bottom: 16,
+    return Scaffold(
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          // App Bar
+          Container(
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top,
+              left: 16,
+              right: 16,
+              bottom: 16,
+            ),
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(20),
+                bottomRight: Radius.circular(20),
               ),
-              decoration: BoxDecoration(
-                color: backgroundColor,
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(20),
-                  bottomRight: Radius.circular(20),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Hi $_username, 👋",
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        Icons.notifications_none,
+                        color: Colors.white,
+                        size: 30,
+                      ),
+                      onPressed: () {
+                        // Handle notifications
+                      },
+                    ),
+                  ],
                 ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Hi $_username, 👋",
-                        style: TextStyle(
-                          fontSize: 20,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
+                SizedBox(height: 8),
+                Text(
+                  "Need some help today?",
+                  style: TextStyle(fontSize: 16, color: Colors.white),
+                ),
+                SizedBox(height: 16),
+                SizedBox(
+                  height: 54,
+                  width: double.infinity,
+                  child: Center(
+                    child: TextField(
+                      controller: searchController,
+                      onChanged: searchHospitals,
+                      decoration: InputDecoration(
+                        hintText: 'Search hospitals',
+                        prefixIcon: Icon(Icons.search, color: Colors.grey),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                      ),
-                      IconButton(
-                        icon: Icon(
-                          Icons.notifications_none,
-                          color: Colors.white,
-                          size: 30,
-                        ),
-                        onPressed: () {
-                          // Handle notifications
-                        },
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    "Need some help today?",
-                    style: TextStyle(fontSize: 16, color: Colors.white),
-                  ),
-                  SizedBox(height: 16),
-                  SizedBox(
-                    height: 54,
-                    width: double.infinity,
-                    child: Center(
-                      child: TextField(
-                        controller: searchController,
-                        onChanged: searchHospitals,
-                        decoration: InputDecoration(
-                          hintText: 'Search hospitals',
-                          prefixIcon: Icon(Icons.search, color: Colors.grey),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          filled: true,
-                          fillColor: Colors.white,
-                        ),
+                        filled: true,
+                        fillColor: Colors.white,
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-            // Conditional content
-            Expanded(
-              child: isSearching ? _buildSearchResults() : _buildMainContent(),
-            ),
-          ],
-        ),
+          ),
+          // Conditional content
+          Expanded(
+            child: isSearching ? _buildSearchResults() : _buildMainContent(),
+          ),
+        ],
       ),
     );
   }
@@ -197,7 +213,6 @@ class _HomeScreenState extends State<HomeScreen> {
             name: hospital["name"]!,
             imagePath: hospital["imagePath"]!,
             address: hospital["address"]!,
-            rating: hospital["rating"]!,
           ),
         );
       },
@@ -312,7 +327,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       name: hospital["name"]!,
                       imagePath: hospital["imagePath"]!,
                       address: hospital["address"]!,
-                      rating: hospital["rating"]!,
                     ),
                     SizedBox(height: 16),
                   ],

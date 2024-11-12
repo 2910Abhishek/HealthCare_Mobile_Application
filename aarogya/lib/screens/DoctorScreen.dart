@@ -1,62 +1,76 @@
-import 'package:aarogya/screens/homescreen.dart';
-import 'package:aarogya/utils/colors.dart';
-import 'package:aarogya/widgets/doctor_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_statusbarcolor_ns/flutter_statusbarcolor_ns.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:aarogya/widgets/doctor_card.dart';
+import 'package:aarogya/screens/bookAppointmentScreen.dart';
 
 class DoctorScreen extends StatefulWidget {
-  DoctorScreen({super.key, required this.hospitalName});
-
   final String hospitalName;
 
+  DoctorScreen({required this.hospitalName});
+
   @override
-  State<DoctorScreen> createState() => _DoctorScreenState();
+  _DoctorScreenState createState() => _DoctorScreenState();
 }
 
 class _DoctorScreenState extends State<DoctorScreen> {
   TextEditingController searchController = TextEditingController();
   bool isSearching = false;
 
-  List<Map<String, String>> doctors = [
-    {
-      "name": "Dr. Jayesh Shah",
-      "speciality": "Cardiologist",
-      "imagePath": "assets/images/doctor_image.png",
-      "address": "vadodara",
-      "rating": "5.0",
-    },
-    {
-      "name": "Dr. Gaurang Patel",
-      "speciality": "Physician",
-      "imagePath": "assets/images/doctor_image.png",
-      "address": "vadodara",
-      "rating": "4.8",
-    },
-    {
-      "name": "Dr. Abhishek Parmar",
-      "speciality": "Computer Science Engineer",
-      "imagePath": "assets/images/doctor_image.png",
-      "address": "vadodara",
-      "rating": "5.0",
-    },
-    // Add more doctors here if needed
-  ];
-
-  List<Map<String, String>> filteredDoctors = [];
+  // Use Map<String, Object> to handle both String and int
+  List<Map<String, dynamic>> doctors = [];
+  List<Map<String, dynamic>> filteredDoctors = [];
 
   @override
   void initState() {
     super.initState();
-    filteredDoctors = doctors;
+    fetchDoctors();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _setStatusBarColor();
     });
   }
 
+  Future<void> fetchDoctors() async {
+    final url = Uri.parse('http://192.168.127.175:5000/doctors');
+
+    // Prepare the data to send in the POST request
+    final Map<String, dynamic> requestBody = {
+      'hospitalName': widget.hospitalName,
+    };
+
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(requestBody),
+    );
+
+    if (response.statusCode == 200) {
+      Map<String, dynamic> data = jsonDecode(response.body);
+      List<dynamic> doctorsData = data['doctors'];
+
+      setState(() {
+        // Cast doctor data properly, using Object to handle both types
+        doctors = doctorsData.map<Map<String, Object>>((doctor) {
+          return {
+            "doctorId": doctor['id'] ?? 0,
+            "name": doctor['name']?.toString() ?? '',
+            "speciality": doctor['speciality']?.toString() ?? '',
+            "imagePath": doctor['profile_image']?.toString() ?? '',
+            "address": doctor['address']?.toString() ?? '',
+          };
+        }).toList();
+
+        filteredDoctors = List.from(doctors); // Initialize filtered list
+      });
+    } else {
+      throw Exception('Failed to load doctors');
+    }
+  }
+
   Future<void> _setStatusBarColor() async {
     await FlutterStatusbarcolor.setStatusBarColor(
-      Color.fromRGBO(11, 143, 172, 1),
-    );
+        Color.fromRGBO(11, 143, 172, 1));
   }
 
   Future<void> _resetStatusBarColor() async {
@@ -75,8 +89,10 @@ class _DoctorScreenState extends State<DoctorScreen> {
     setState(() {
       isSearching = query.isNotEmpty;
       filteredDoctors = doctors
-          .where((doctor) =>
-              doctor["name"]!.toLowerCase().contains(query.toLowerCase()))
+          .where((doctor) => doctor["name"]!
+              .toString()
+              .toLowerCase()
+              .contains(query.toLowerCase()))
           .toList();
     });
   }
@@ -84,82 +100,29 @@ class _DoctorScreenState extends State<DoctorScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.hospitalName),
+        backgroundColor: Color.fromRGBO(11, 143, 172, 1),
+      ),
       body: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          // App Bar
-          Container(
-            padding: EdgeInsets.only(
-              top: MediaQuery.of(context).padding.top,
-              left: 16,
-              right: 16,
-              bottom: 16,
-            ),
-            decoration: BoxDecoration(
-              color: backgroundColor,
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(20),
-                bottomRight: Radius.circular(20),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: TextField(
+              controller: searchController,
+              onChanged: searchDoctors,
+              decoration: InputDecoration(
+                hintText: 'Search for Doctors',
+                prefixIcon: Icon(Icons.search),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                filled: true,
+                fillColor: Colors.white,
               ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    GestureDetector(
-                      child: Icon(
-                        Icons.arrow_back_outlined,
-                        color: Colors.white,
-                      ),
-                      onTap: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => HomeScreen(),
-                            ));
-                      },
-                    ),
-                    Text(
-                      "Please Book Your Appointment",
-                      style: TextStyle(
-                        fontSize: 19,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(
-                      height: 75,
-                    ),
-                  ],
-                ),
-                SizedBox(height: 8),
-                SizedBox(
-                  height: 54,
-                  width: double.infinity,
-                  child: Center(
-                    child: TextField(
-                      controller: searchController,
-                      onChanged: searchDoctors,
-                      decoration: InputDecoration(
-                        hintText: 'Search for Doctors',
-                        prefixIcon: Icon(Icons.search, color: Colors.grey),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
           ),
-          // Conditional content
           Expanded(
-            child: isSearching ? _buildSearchResults() : _buildMainContent(),
+            child: isSearching ? _buildSearchResults() : _buildDoctorList(),
           ),
         ],
       ),
@@ -168,123 +131,35 @@ class _DoctorScreenState extends State<DoctorScreen> {
 
   Widget _buildSearchResults() {
     return ListView.builder(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       itemCount: filteredDoctors.length,
       itemBuilder: (context, index) {
         final doctor = filteredDoctors[index];
-        return Column(
-          children: [
-            DoctorCard(
-              hospitalName: widget.hospitalName,
-              name: doctor["name"]!,
-              speciality: doctor["speciality"]!,
-              imagePath: doctor["imagePath"]!,
-              address: doctor["address"]!,
-              rating: doctor["rating"]!,
-            ),
-            SizedBox(height: 16),
-          ],
+        return DoctorCard(
+          hospitalName: widget.hospitalName,
+          name: doctor["name"] as String,
+          speciality: doctor["speciality"] as String,
+          imagePath: doctor["imagePath"] as String,
+          address: doctor["address"] as String,
+          doctorId: doctor["doctorId"] as int, // Explicitly cast to int
         );
       },
     );
   }
 
-  Widget _buildMainContent() {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Card(
-                  color: backgroundColor,
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Consult Doctors',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              SizedBox(height: 8),
-                              Text(
-                                'Book appointment for ${widget.hospitalName}',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Image.asset(
-                          'assets/images/doctor_image.png',
-                          width: 100,
-                          height: 100,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                SizedBox(height: 18),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "Top Doctors",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {},
-                      child: Text("See all"),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          ListView.builder(
-            shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(),
-            padding: EdgeInsets.symmetric(horizontal: 16),
-            itemCount: doctors.length,
-            itemBuilder: (context, index) {
-              final doctor = doctors[index];
-              return Column(
-                children: [
-                  DoctorCard(
-                    hospitalName: widget.hospitalName,
-                    name: doctor["name"]!,
-                    speciality: doctor["speciality"]!,
-                    imagePath: doctor["imagePath"]!,
-                    address: doctor["address"]!,
-                    rating: doctor["rating"]!,
-                  ),
-                  SizedBox(height: 16),
-                ],
-              );
-            },
-          ),
-        ],
-      ),
+  Widget _buildDoctorList() {
+    return ListView.builder(
+      itemCount: doctors.length,
+      itemBuilder: (context, index) {
+        final doctor = doctors[index];
+        return DoctorCard(
+          hospitalName: widget.hospitalName,
+          name: doctor["name"] as String,
+          speciality: doctor["speciality"] as String,
+          imagePath: doctor["imagePath"] as String,
+          address: doctor["address"] as String,
+          doctorId: doctor["doctorId"] as int, // Explicitly cast to int
+        );
+      },
     );
   }
 }
