@@ -1,69 +1,113 @@
-# HealthCare_Mobile_Application
 
-Kotlin_Version_Error Solution:
+<h1 align="center">Smart Healthcare Appointment Application</h1>
 
-Upgrade in andriod/build.gradle
+<p align="center">
+  <b>A comprehensive healthcare solution to streamline appointments, reduce waiting times, and enhance overall healthcare management.</b>
+</p>
 
-buildscript {
-    ext.kotlin_version = '1.9.0'  // Update this to the latest version if necessary
-    repositories {
-        google()
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:7.3.0'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-    }
-}
+<p align="center">
+  <img src="https://img.shields.io/badge/Platform-Flutter-green">
+  <img src="https://img.shields.io/badge/Backend-Flask-blue">
+  <img src="https://img.shields.io/badge/Database-Firebase-orange">
+  <img src="https://img.shields.io/badge/Database-PostgreSQL-blue">
+  <img src="https://img.shields.io/badge/License-MIT-brightgreen">
+</p>
 
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
-    }
-}
+## 📋 Table of Contents
+- [Project Overview](#project-overview)
+- [Features](#features)
+- [Technology Stack](#technology-stack)
+- [Installation and Setup](#installation-and-setup)
+  - [Frontend (Doctor React App)](#frontend-doctor-react-app)
+  - [Backend](#backend)
+  - [Aarogya (Flutter App)](#aarogya-flutter-app)
+- [Contributing](#contributing)
+- [License](#license)
+- [Acknowledgments](#acknowledgments)
 
-rootProject.buildDir = "../build"
-subprojects {
-    project.buildDir = "${rootProject.buildDir}/${project.name}"
-}
-subprojects {
-    project.evaluationDependsOn(":app")
-}
+## 🌐 Project Overview
+The **Smart Healthcare Appointment Application** aims to revolutionize healthcare experiences by simplifying appointment bookings, minimizing patient wait times, and enhancing healthcare management. This application addresses the shortcomings of traditional healthcare systems by utilizing modern technologies to improve both patient and doctor experiences.
 
-tasks.register("clean", Delete) {
-    delete rootProject.buildDir
-}
+---
+
+## ✨ Features
+- **Streamlined Appointment Booking**: Effortlessly book doctor appointments through a user-friendly interface.
+- **Real-time Notifications**: Receive alerts when it's time to leave for your appointment, reducing waiting times.
+- **Lab Report Uploads**: Upload lab reports prior to appointments for doctors to review in advance.
+- **Health Monitoring**: Track and analyze trends in diabetes and blood pressure over time.
+- **User-friendly Design**: Simple, intuitive interface accessible to users of all ages.
+- **Secure Data Handling**: Guarantees confidentiality and integrity of health records and personal data.
+- **Timely Reminders**: Automated reminders for upcoming appointments and medication schedules.
+- **Enhanced Patient Care**: Supports better health outcomes through proactive monitoring and timely interventions.
+
+---
+
+## 🛠️ Technology Stack
 
 
+| **Component**       | **Technology**                                                                                 |
+|---------------------|------------------------------------------------------------------------------------------------|
+| **Frontend**        | <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB">  |
+| **Backend**         | <img src="https://img.shields.io/badge/Python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54"> <img src="https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white"> |
+| **Database**        | <img src="https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=white"> <img src="https://img.shields.io/badge/PostgreSQL-336791?style=for-the-badge&logo=postgresql&logoColor=white">  |
+| **Mobile App**      | <img src="https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white"> |
+| **Authentication**  | Phone-based Authentication                                                                     |
+| **Notifications**   | Firebase Cloud Messaging (FCM)                                                                 |
+| **Version Control** | Git, GitHub                                                                                    |
+| **Editors**         | Visual Studio Code, Android Studio                                                             |
+| **Design**          | Figma, Adobe XD                                                                                |
 
+---
 
-Upgrade in settings.gradle
-pluginManagement {
-    def flutterSdkPath = {
-        def properties = new Properties()
-        file("local.properties").withInputStream { properties.load(it) }
-        def flutterSdkPath = properties.getProperty("flutter.sdk")
-        assert flutterSdkPath != null, "flutter.sdk not set in local.properties"
-        return flutterSdkPath
-    }()
+## 🚀 Installation and Setup
+### Frontend (Doctor React App)
+```bash
+# Navigate to the frontend folder
+cd frontend
 
-    includeBuild("$flutterSdkPath/packages/flutter_tools/gradle")
+# Install dependencies
+npm install
 
-    repositories {
-        google()
-        mavenCentral()
-        gradlePluginPortal()
-    }
-}
+# Start the development server
+npm run dev
+```
 
-plugins {
-    id "dev.flutter.flutter-plugin-loader" version "1.0.0"
-    id "com.android.application" version "7.3.0" apply false
-    // START: FlutterFire Configuration
-    id "com.google.gms.google-services" version "4.3.15" apply false
-    // END: FlutterFire Configuration
-    id "org.jetbrains.kotlin.android" version "1.9.0" apply false  // Upgrade Here
-}
+### Backend
+```bash
+# Navigate to the backend folder
+cd backend
 
-include ":app"
+# Create and activate a virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install required dependencies
+pip install -r requirements.txt
+
+# Run the backend server
+python login.py
+```
+
+### Aarogya (Flutter App)
+```bash
+# Navigate to the aarogya folder
+cd aarogya
+
+# Install necessary packages
+flutter pub get
+
+# Update IP address in lib/screens/constants.dart
+# Replace ipv4Address with your device's IPv4 address
+
+# Start the Flutter app
+flutter run
+```
+
+## 🤝 Contributing
+Contributions to the Smart Healthcare Appointment Application are welcome! If you have suggestions, bug fixes, or improvements, please submit a pull request or open an issue.
+
+## 📜 License
+This project is licensed under the MIT License. See the LICENSE file for details.
+
+## 🙏 Acknowledgments
+We extend our gratitude to the open-source community and the developers of the technologies we use, including Flutter, Python, Firebase, PostgreSQL, and all associated libraries and frameworks.
