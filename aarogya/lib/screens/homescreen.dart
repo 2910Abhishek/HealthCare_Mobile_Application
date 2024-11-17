@@ -79,7 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> fetchHospitals() async {
     try {
       final response =
-          await http.get(Uri.parse('http://192.168.127.175:5000/hospitals'));
+          await http.get(Uri.parse('http://192.168.80.175:5000/hospitals'));
 
       if (response.statusCode == 200) {
         Map<String, dynamic> data = jsonDecode(response.body);

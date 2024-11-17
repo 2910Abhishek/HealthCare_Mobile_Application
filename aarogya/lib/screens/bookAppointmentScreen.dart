@@ -77,7 +77,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.127.175:5000/api/flutter/doctor-slots'),
+        Uri.parse('http://192.168.80.175:5000/api/flutter/doctor-slots'),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -524,7 +524,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
 
       // First make the API call to add patient with location
       final response = await http.post(
-        Uri.parse('http://192.168.127.175:5000/add-patient'),
+        Uri.parse('http://192.168.80.175:5000/add-patient'),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -709,7 +709,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   }
 
   Future<bool> _sendEmail(String filePath) async {
-    final smtpServer = gmail('22cs046@charusat.edu.in', 'uqhz gqed gghr govc');
+    final smtpServer = gmail('22cs046@charusat.edu.in', 'ozhd ohse eenp vgjm');
     final message = Message()
       ..from = Address('22cs046@charusat.edu.in', '22cs046')
       ..recipients.add(_auth.currentUser!.email)

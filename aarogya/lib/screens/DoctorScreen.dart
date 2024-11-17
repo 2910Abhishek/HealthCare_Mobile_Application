@@ -32,7 +32,7 @@ class _DoctorScreenState extends State<DoctorScreen> {
   }
 
   Future<void> fetchDoctors() async {
-    final url = Uri.parse('http://192.168.127.175:5000/doctors');
+    final url = Uri.parse('http://192.168.80.175:5000/doctors');
 
     // Prepare the data to send in the POST request
     final Map<String, dynamic> requestBody = {
