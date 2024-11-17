@@ -1439,6 +1439,265 @@
 // export default PatientList;
 
 
+// import React, { useState, useEffect, useRef } from 'react';
+// import { useNavigate } from 'react-router-dom';
+// import { useAuth } from './authcontext';
+// import { io } from 'socket.io-client';
+// import DatePicker from 'react-datepicker';
+// import 'react-datepicker/dist/react-datepicker.css';
+// import "../styles/patientlist.css";
+
+// const PatientList = () => {
+//   const [patientsByDate, setPatientsByDate] = useState({});
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState(null);
+//   const [selectedDate, setSelectedDate] = useState(new Date());
+//   const { userName } = useAuth();
+//   const containerRef = useRef(null);
+//   const socketRef = useRef(null);
+//   const navigate = useNavigate();
+
+//   // Helper function to parse the date string from API
+//   const parseApiDate = (dateString) => {
+//     if (!dateString) return null;
+//     return new Date(dateString.replace(' ', 'T'));  // Convert to ISO format for reliable parsing
+//   };
+
+//   // Helper function to format date for grouping patients
+//   const formatDate = (date) => {
+//     if (!date) return '';
+//     const d = new Date(date);
+//     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+//   };
+
+//   useEffect(() => {
+//     fetchPatients();
+
+//     socketRef.current = io('http://localhost:5000', {
+//       transports: ['websocket', 'polling'],
+//       cors: {
+//         origin: "http://localhost:3000",
+//         credentials: true
+//       }
+//     });
+
+//     socketRef.current.on('connect', () => {
+//       console.log('Socket connected successfully');
+//     });
+
+//     socketRef.current.on('new_patient', (newPatient) => {
+//       if (newPatient.assigned_doctor === userName) {
+//         setPatientsByDate(prevPatients => {
+//           const parsedDate = parseApiDate(newPatient.reporting_time);
+//           const date = formatDate(parsedDate);
+//           const updatedPatients = { ...prevPatients };
+          
+//           if (!updatedPatients[date]) {
+//             updatedPatients[date] = [];
+//           }
+
+//           const existingIndex = updatedPatients[date].findIndex(p => p.id === newPatient.id);
+          
+//           if (existingIndex === -1) {
+//             updatedPatients[date] = [
+//               ...updatedPatients[date],
+//               { ...newPatient, consulted: false }
+//             ];
+//           } else {
+//             updatedPatients[date][existingIndex] = {
+//               ...newPatient,
+//               consulted: updatedPatients[date][existingIndex].consulted
+//             };
+//           }
+          
+//           return updatedPatients;
+//         });
+//       }
+//     });
+
+//     socketRef.current.on('consulted_patient', (data) => {
+//       setPatientsByDate(prevPatients => {
+//         const newPatients = JSON.parse(JSON.stringify(prevPatients));
+//         Object.values(newPatients).forEach(patients => {
+//           const patient = patients.find(p => p.name === data.name);
+//           if (patient) {
+//             patient.consulted = true;
+//             // Update the consulted status in local storage
+//             localStorage.setItem(`consulted-${patient.id}`, true);
+//           }
+//         });
+//         return newPatients;
+//       });
+//     });
+
+//     return () => {
+//       if (socketRef.current) {
+//         socketRef.current.disconnect();
+//       }
+//     };
+//   }, [userName]);
+
+//   const fetchPatients = async () => {
+//     try {
+//       const response = await fetch('http://localhost:5000/get-patient-data');
+//       if (!response.ok) {
+//         throw new Error('Failed to fetch patient data');
+//       }
+//       const data = await response.json();
+      
+//       // Filter patients for current doctor
+//       const filteredPatients = data.filter(patient => patient.assigned_doctor === userName);
+      
+//       // Get stored consulted status
+//       const storedConsultedStatus = {};
+//       filteredPatients.forEach(patient => {
+//         const consultedStatus = localStorage.getItem(`consulted-${patient.id}`);
+//         storedConsultedStatus[patient.id] = consultedStatus ? JSON.parse(consultedStatus) : false;
+//       });
+
+//       // Group patients by date using the formatted date
+//       const groupedPatients = filteredPatients.reduce((acc, patient) => {
+//         const parsedDate = parseApiDate(patient.reporting_time);
+//         const date = formatDate(parsedDate);
+//         if (!acc[date]) {
+//           acc[date] = [];
+//         }
+//         acc[date].push({
+//           ...patient,
+//           consulted: storedConsultedStatus[patient.id] || false
+//         });
+//         return acc;
+//       }, {});
+
+//       setPatientsByDate(groupedPatients);
+//       setLoading(false);
+//     } catch (err) {
+//       console.error('Error fetching patient data:', err);
+//       setError('Failed to load patient data. Please try again later.');
+//       setLoading(false);
+//     }
+//   };
+
+//   const handleConsultedChange = (event, date, index) => {
+//     event.stopPropagation();
+//     const patient = patientsByDate[date][index];
+//     socketRef.current.emit('update_consulted', { patient_id: patient.id });
+//     // Update the consulted status in local storage
+//     localStorage.setItem(`consulted-${patient.id}`, true);
+//   };
+
+//   const handlePatientClick = (patientId) => {
+//     const selectedPatient = Object.values(patientsByDate)
+//       .flat()
+//       .find(patient => patient.id === patientId);
+  
+//     if (selectedPatient) {
+//       navigate(`/patient/${patientId}`, { state: { patient: selectedPatient } });
+//     } else {
+//       console.error('Patient not found');
+//     }
+//   };
+
+//   if (loading) return <div className="patient-list-loading">Loading patient data...</div>;
+//   if (error) return <div className="patient-list-error">{error}</div>;
+
+//   const today = formatDate(new Date());
+//   const selectedDateStr = formatDate(selectedDate);
+  
+//   // Get all dates that have patients
+//   const availableDates = Object.keys(patientsByDate).sort();
+
+//   return (
+//     <div className="patient-list-container" ref={containerRef}>
+//       <div className="patient-list-header">
+//         <h1>Patient Appointments</h1>
+//         <div className="date-picker-container">
+//           <DatePicker
+//             selected={selectedDate}
+//             onChange={date => setSelectedDate(date)}
+//             className="date-picker"
+//             dateFormat="yyyy-MM-dd"
+//           />
+//         </div>
+//       </div>
+//       <div className="date-sections">
+//         {availableDates.length === 0 ? (
+//           <p className="no-patients">No patients scheduled for checkup.</p>
+//         ) : (
+//           <DateSection
+//             dates={[selectedDateStr]}
+//             patientsByDate={patientsByDate}
+//             handleConsultedChange={handleConsultedChange}
+//             handlePatientClick={handlePatientClick}
+//             isToday={selectedDateStr === today}
+//             isSelected={true}
+//             formatTime={(timeStr) => {
+//               const date = parseApiDate(timeStr);
+//               return date ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+//             }}
+//           />
+//         )}
+//       </div>
+//     </div>
+//   );
+// };
+
+// const DateSection = ({ dates, patientsByDate, handleConsultedChange, handlePatientClick, isToday = false, isSelected = false, formatTime }) => {
+//   return dates.map(date => {
+//     const patients = patientsByDate[date] || [];
+//     const displayDate = new Date(date);
+//     const isInFuture = displayDate > new Date();
+
+//     return (
+//       <div key={date} className={`date-section ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''} ${isInFuture ? 'future' : ''}`}>
+//         <h2 className="date-header">
+//           {isToday ? 'Today' : isSelected ? 'Selected Date' : date}
+//           {isInFuture && ' (Future Appointment)'}
+//         </h2>
+//         <div className="patient-grid">
+//           {patients.length === 0 ? (
+//             <p className="no-patients-for-date">No patients scheduled for this date.</p>
+//           ) : (
+//             patients.map((patient, index) => (
+//               <div 
+//                 key={patient.id} 
+//                 className={`patient-card ${patient.consulted ? 'consulted' : ''}`}
+//                 onClick={() => handlePatientClick(patient.id)}
+//               >
+//                 <div className="patient-info">
+//                   <h3 className="patient-name">{patient.name}</h3>
+//                   <div className="patient-details">
+//                     <p>Gender: {patient.gender}</p>
+//                     <p>Age: {patient.age}</p>
+//                     <p>Reporting Time: {formatTime(patient.reporting_time)}</p>
+//                   </div>
+//                 </div>
+//                 <div className="patient-actions" onClick={(e) => e.stopPropagation()}>
+//                   <div className="consulted-checkbox">
+//                     <label>
+//                       <input
+//                         type="checkbox"
+//                         checked={patient.consulted}
+//                         onChange={(e) => handleConsultedChange(e, date, index)}
+//                       />
+//                       Consulted
+//                     </label>
+//                   </div>
+//                 </div>
+//               </div>
+//             ))
+//           )}
+//         </div>
+//       </div>
+//     );
+//   });
+// };
+
+// export default PatientList;
+
+
+
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './authcontext';
@@ -1460,7 +1719,7 @@ const PatientList = () => {
   // Helper function to parse the date string from API
   const parseApiDate = (dateString) => {
     if (!dateString) return null;
-    return new Date(dateString.replace(' ', 'T'));  // Convert to ISO format for reliable parsing
+    return new Date(dateString);
   };
 
   // Helper function to format date for grouping patients
@@ -1486,30 +1745,42 @@ const PatientList = () => {
     });
 
     socketRef.current.on('new_patient', (newPatient) => {
+      console.log('New patient received:', newPatient);
       if (newPatient.assigned_doctor === userName) {
         setPatientsByDate(prevPatients => {
           const parsedDate = parseApiDate(newPatient.reporting_time);
           const date = formatDate(parsedDate);
+          
+          console.log('Parsed date:', date);
+          
           const updatedPatients = { ...prevPatients };
           
           if (!updatedPatients[date]) {
             updatedPatients[date] = [];
           }
 
+          // Check if patient already exists
           const existingIndex = updatedPatients[date].findIndex(p => p.id === newPatient.id);
           
           if (existingIndex === -1) {
+            // Add new patient
             updatedPatients[date] = [
               ...updatedPatients[date],
-              { ...newPatient, consulted: false }
+              {
+                ...newPatient,
+                consulted: false,
+                reporting_time: newPatient.reporting_time // Ensure reporting_time is included
+              }
             ];
           } else {
+            // Update existing patient
             updatedPatients[date][existingIndex] = {
               ...newPatient,
               consulted: updatedPatients[date][existingIndex].consulted
             };
           }
           
+          console.log('Updated patients:', updatedPatients);
           return updatedPatients;
         });
       }
@@ -1522,7 +1793,6 @@ const PatientList = () => {
           const patient = patients.find(p => p.name === data.name);
           if (patient) {
             patient.consulted = true;
-            // Update the consulted status in local storage
             localStorage.setItem(`consulted-${patient.id}`, true);
           }
         });
@@ -1555,7 +1825,7 @@ const PatientList = () => {
         storedConsultedStatus[patient.id] = consultedStatus ? JSON.parse(consultedStatus) : false;
       });
 
-      // Group patients by date using the formatted date
+      // Group patients by date
       const groupedPatients = filteredPatients.reduce((acc, patient) => {
         const parsedDate = parseApiDate(patient.reporting_time);
         const date = formatDate(parsedDate);
@@ -1569,6 +1839,7 @@ const PatientList = () => {
         return acc;
       }, {});
 
+      console.log('Grouped patients:', groupedPatients);
       setPatientsByDate(groupedPatients);
       setLoading(false);
     } catch (err) {
@@ -1582,7 +1853,6 @@ const PatientList = () => {
     event.stopPropagation();
     const patient = patientsByDate[date][index];
     socketRef.current.emit('update_consulted', { patient_id: patient.id });
-    // Update the consulted status in local storage
     localStorage.setItem(`consulted-${patient.id}`, true);
   };
 
@@ -1604,8 +1874,12 @@ const PatientList = () => {
   const today = formatDate(new Date());
   const selectedDateStr = formatDate(selectedDate);
   
-  // Get all dates that have patients
+  // Get all dates that have patients and sort them
   const availableDates = Object.keys(patientsByDate).sort();
+
+  console.log('Selected date:', selectedDateStr);
+  console.log('Available dates:', availableDates);
+  console.log('Patients for selected date:', patientsByDate[selectedDateStr]);
 
   return (
     <div className="patient-list-container" ref={containerRef}>
