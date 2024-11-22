@@ -503,12 +503,30 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   //   }
   // }
 
+  Future<Map<String, dynamic>> _getUserProfileData() async {
+    User? user = _auth.currentUser;
+    if (user != null) {
+      DocumentSnapshot doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      if (doc.exists) {
+        return doc.data() as Map<String, dynamic>;
+      }
+    }
+    return {'age': 0, 'gender': 'Not Specified'}; // Default values
+  }
+
   Future<void> _bookAppointment() async {
     setState(() {
       _isLoading = true;
     });
 
     try {
+      // Retrieve age and gender from Firestore
+      Map<String, dynamic> profileData = await _getUserProfileData();
+      String gender = profileData['gender'] ?? 'Not Specified';
+      int age = int.tryParse(profileData['age'] ?? '0') ?? 0;
       // Get current location first
       final Position position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high);
@@ -530,8 +548,8 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
         },
         body: json.encode({
           'name': _auth.currentUser!.displayName,
-          'gender': 'Not Specified',
-          'age': 0,
+          'gender': gender,
+          'age': age,
           'reporting_time': reportingTime, // Pass combined date and time
           'doctor_id': widget.doctorId,
           'latitude': position.latitude,
