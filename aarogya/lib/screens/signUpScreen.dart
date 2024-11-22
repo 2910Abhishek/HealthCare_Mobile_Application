@@ -80,7 +80,7 @@ class _SignUpScreenState extends State<SignUpScreen>
           'email': _emailController.text.trim(),
         });
 
-        Navigator.pushReplacementNamed(context, '/home');
+        Navigator.pushReplacementNamed(context, '/profile');
       } else {
         _showErrorDialog('Failed to create account');
       }
@@ -219,7 +219,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                                     bool res = await _authMethods
                                         .signInWithGoogle(context);
                                     if (res) {
-                                      Navigator.pushNamed(context, '/home');
+                                      Navigator.pushNamed(context, '/profile');
                                     }
                                     setState(() {
                                       _isLoading = false;

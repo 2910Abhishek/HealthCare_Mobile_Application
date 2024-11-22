@@ -127,7 +127,7 @@ class _LogInScreenState extends State<LogInScreen>
                             children: [
                               InkWell(
                                 onTap: () {
-                                  Navigator.pushNamed(context, '/signup');
+                                  Navigator.pushNamed(context, '/profile');
                                 },
                                 child: Icon(
                                   Icons.arrow_back_sharp,
@@ -189,7 +189,7 @@ class _LogInScreenState extends State<LogInScreen>
                                         await _authMethods.signInWithGoogle();
 
                                     if (res) {
-                                      Navigator.pushNamed(context, '/home');
+                                      Navigator.pushNamed(context, '/profile');
                                     }
 
                                     setState(() {

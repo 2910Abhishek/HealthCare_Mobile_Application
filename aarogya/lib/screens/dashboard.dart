@@ -1,13 +1,21 @@
 import 'dart:io';
 
-import 'package:aarogya/utils/colors.dart';
+import 'package:aarogya/screens/homescreen.dart';
+import 'package:aarogya/screens/tabsscreen.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
+import '../utils/colors.dart';
+
 class ProfileScreen extends StatefulWidget {
+  final bool isFirstTimeSetup;
+
+  const ProfileScreen({Key? key, this.isFirstTimeSetup = false})
+      : super(key: key);
+
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
 }
@@ -16,20 +24,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final ImagePicker _picker = ImagePicker();
   File? _image;
-  String? _profileImageUrl; // Added to store the image URL
+  String? _profileImageUrl;
 
-  // Text field controllers
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _heightController = TextEditingController();
   final TextEditingController _weightController = TextEditingController();
   final TextEditingController _ageController = TextEditingController();
-  final TextEditingController _bloodTypeController = TextEditingController();
 
-  // Added for dropdowns
   String _selectedGender = 'Male';
   String _selectedBloodGroup = 'A+';
-
-  // Lists for dropdown items
   final List<String> _genders = ['Male', 'Female', 'Other'];
   final List<String> _bloodGroups = [
     'A+',
@@ -42,21 +45,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
     'AB-'
   ];
 
-  bool isEditing = false;
+  bool isEditing = true;
+  bool isProfileComplete = false;
 
   @override
   void initState() {
     super.initState();
-    _loadProfile();
+    if (widget.isFirstTimeSetup) {
+      isEditing = true;
+    } else {
+      _loadProfile();
+    }
   }
 
-  // Updated load profile function to include image URL
   Future<void> _loadProfile() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      String uid = user.uid;
-      DocumentSnapshot doc =
-          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      DocumentSnapshot doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
 
       if (doc.exists) {
         var data = doc.data() as Map<String, dynamic>;
@@ -68,39 +76,98 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _selectedGender = data['gender'] ?? 'Male';
           _selectedBloodGroup = data['blood_type'] ?? 'A+';
           _profileImageUrl = data['profile_image_url'];
+
+          // Determine if the profile is complete
+          isProfileComplete = _nameController.text.isNotEmpty &&
+              _heightController.text.isNotEmpty &&
+              _weightController.text.isNotEmpty &&
+              _ageController.text.isNotEmpty &&
+              _profileImageUrl != null &&
+              _profileImageUrl!.isNotEmpty;
+
+          // Disable editing if profile is complete
+          isEditing = !isProfileComplete;
         });
       }
     }
   }
 
-  // Updated save profile function to include gender
   void _saveProfile() async {
     if (_formKey.currentState!.validate()) {
       User? user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        String uid = user.uid;
 
-        await FirebaseFirestore.instance.collection('users').doc(uid).set({
+      if (user == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('User not authenticated. Please log in again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        Navigator.pushNamed(context, '/home');
+        return;
+      }
+
+      if (_nameController.text.isEmpty ||
+          _heightController.text.isEmpty ||
+          _weightController.text.isEmpty ||
+          _ageController.text.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Please fill in all required fields'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      if (_profileImageUrl == null || _profileImageUrl!.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Please upload a profile picture'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      try {
+        Map<String, dynamic> profileData = {
           'name': _nameController.text,
           'height': _heightController.text,
           'weight': _weightController.text,
           'age': _ageController.text,
           'gender': _selectedGender,
           'blood_type': _selectedBloodGroup,
-          'profile_image_url': _profileImageUrl, // Save the image URL
-        }).then((_) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Profile saved successfully!')),
-          );
-        }).catchError((error) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to save profile: $error')),
-          );
-        });
+          'profile_image_url': _profileImageUrl,
+          'profile_completed': true,
+        };
+
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .set(profileData, SetOptions(merge: true));
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Profile saved successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
 
         setState(() {
           isEditing = false;
+          isProfileComplete = true;
         });
+
+        // Navigate to /home after saving the profile
+        Navigator.pushReplacementNamed(context, '/home');
+      } catch (error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to save profile: ${error.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }
@@ -110,7 +177,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     Navigator.of(context).pushReplacementNamed('/login');
   }
 
-  // Updated image picker function
   Future<void> _pickImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
@@ -149,16 +215,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       appBar: AppBar(
         iconTheme: IconThemeData(color: Colors.white),
         title: Text(
-          'Profile',
+          isProfileComplete ? 'Your Profile' : 'Complete Your Profile',
           style: TextStyle(color: Colors.white),
         ),
         backgroundColor: backgroundColor,
         actions: [
-          IconButton(
-            icon: Icon(Icons.logout, color: Colors.white),
-            onPressed: _signOut,
-          ),
-          if (!isEditing)
+          if (isProfileComplete)
             IconButton(
               icon: Icon(Icons.edit, color: Colors.white),
               onPressed: () {
@@ -167,6 +229,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 });
               },
             ),
+          IconButton(
+            icon: Icon(Icons.logout, color: Colors.white),
+            onPressed: _signOut,
+          ),
         ],
       ),
       body: SingleChildScrollView(
@@ -206,22 +272,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
           SizedBox(height: 20),
-
-          TextFormField(
-            controller: _nameController,
-            decoration: InputDecoration(
+          _buildTextField(
+              controller: _nameController,
               labelText: 'Name',
-              border: OutlineInputBorder(),
-              prefixIcon: Icon(Icons.person),
-            ),
-            validator: (value) {
-              if (value!.isEmpty) return 'Please enter your name';
-              return null;
-            },
-          ),
+              icon: Icons.person),
           SizedBox(height: 16),
-
-          // Added Gender Dropdown
           DropdownButtonFormField<String>(
             value: _selectedGender,
             decoration: InputDecoration(
@@ -244,50 +299,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
             },
           ),
           SizedBox(height: 16),
-
-          TextFormField(
-            controller: _heightController,
-            decoration: InputDecoration(
+          _buildTextField(
+              controller: _heightController,
               labelText: 'Height (ft)',
-              border: OutlineInputBorder(),
-              prefixIcon: Icon(Icons.height),
-            ),
-            validator: (value) {
-              if (value!.isEmpty) return 'Please enter your height';
-              return null;
-            },
-          ),
+              icon: Icons.height),
           SizedBox(height: 16),
-
-          TextFormField(
-            controller: _weightController,
-            decoration: InputDecoration(
+          _buildTextField(
+              controller: _weightController,
               labelText: 'Weight (kg)',
-              border: OutlineInputBorder(),
-              prefixIcon: Icon(Icons.line_weight),
-            ),
-            validator: (value) {
-              if (value!.isEmpty) return 'Please enter your weight';
-              return null;
-            },
-          ),
+              icon: Icons.monitor_weight),
           SizedBox(height: 16),
-
-          TextFormField(
-            controller: _ageController,
-            decoration: InputDecoration(
-              labelText: 'Age',
-              border: OutlineInputBorder(),
-              prefixIcon: Icon(Icons.cake),
-            ),
-            validator: (value) {
-              if (value!.isEmpty) return 'Please enter your age';
-              return null;
-            },
-          ),
+          _buildTextField(
+              controller: _ageController, labelText: 'Age', icon: Icons.cake),
           SizedBox(height: 16),
-
-          // Updated Blood Group Dropdown
           DropdownButtonFormField<String>(
             value: _selectedBloodGroup,
             decoration: InputDecoration(
@@ -309,13 +333,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
               }
             },
           ),
-          SizedBox(height: 24),
-
+          SizedBox(height: 20),
           ElevatedButton(
             onPressed: _saveProfile,
             child: Text('Save Profile'),
             style: ElevatedButton.styleFrom(
-              padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+              padding: EdgeInsets.symmetric(vertical: 14, horizontal: 50),
+              textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -333,67 +357,53 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
         SizedBox(height: 20),
-        Text(
-          _nameController.text.isNotEmpty ? _nameController.text : 'Your Name',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-        ),
-        SizedBox(height: 10),
-        Text(
-          _selectedGender,
-          style: TextStyle(fontSize: 16, color: Colors.grey),
-        ),
-        SizedBox(height: 20),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _buildProfileDetail(
-                'Height',
-                _heightController.text.isNotEmpty
-                    ? _heightController.text
-                    : '5.8',
-                Icons.height),
-            _buildProfileDetail(
-                'Weight',
-                _weightController.text.isNotEmpty
-                    ? _weightController.text
-                    : '70',
-                Icons.line_weight),
-            _buildProfileDetail(
-                'Age',
-                _ageController.text.isNotEmpty ? _ageController.text : '25',
-                Icons.cake),
-            _buildProfileDetail('Blood', _selectedBloodGroup, Icons.bloodtype),
-          ],
-        ),
+        _buildInfoTile(Icons.person, 'Name', _nameController.text),
+        _buildInfoTile(Icons.person_outline, 'Gender', _selectedGender),
+        _buildInfoTile(Icons.height, 'Height', '${_heightController.text} ft'),
+        _buildInfoTile(
+            Icons.monitor_weight, 'Weight', '${_weightController.text} kg'),
+        _buildInfoTile(Icons.cake, 'Age', '${_ageController.text} years'),
+        _buildInfoTile(Icons.bloodtype, 'Blood Group', _selectedBloodGroup),
       ],
     );
   }
 
-  Widget _buildProfileDetail(String label, String value, IconData icon) {
-    return Column(
-      children: [
-        Icon(icon, size: 28, color: backgroundColor),
-        SizedBox(height: 4),
-        Text(
-          value,
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-        SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(fontSize: 14, color: Colors.grey),
-        ),
-      ],
+  Widget _buildInfoTile(IconData icon, String title, String value) {
+    return ListTile(
+      leading: Icon(icon, color: backgroundColor),
+      title: Text(title, style: TextStyle(fontWeight: FontWeight.bold)),
+      subtitle: Text(value),
     );
   }
 
-  // Helper method to get profile image
   ImageProvider _getProfileImage() {
     if (_image != null) {
       return FileImage(_image!);
-    } else if (_profileImageUrl != null && _profileImageUrl!.isNotEmpty) {
+    } else if (_profileImageUrl != null) {
       return NetworkImage(_profileImageUrl!);
+    } else {
+      return AssetImage('assets/images/profile.png');
     }
-    return AssetImage('assets/profile.png') as ImageProvider;
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String labelText,
+    required IconData icon,
+  }) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: labelText,
+        border: OutlineInputBorder(),
+        prefixIcon: Icon(icon),
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'This field is required';
+        }
+        return null;
+      },
+    );
   }
 }

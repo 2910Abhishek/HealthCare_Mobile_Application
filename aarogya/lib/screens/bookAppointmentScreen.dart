@@ -709,7 +709,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   }
 
   Future<bool> _sendEmail(String filePath) async {
-    final smtpServer = gmail('22cs046@charusat.edu.in', 'ozhd ohse eenp vgjm');
+    final smtpServer = gmail('22cs046@charusat.edu.in', 'nril vcmk rxro zhag');
     final message = Message()
       ..from = Address('22cs046@charusat.edu.in', '22cs046')
       ..recipients.add(_auth.currentUser!.email)
