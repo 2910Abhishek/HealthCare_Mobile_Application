@@ -13,7 +13,6 @@ import 'package:aarogya/screens/DoctorScreen.dart';
 import 'package:aarogya/utils/colors.dart';
 import 'package:aarogya/widgets/customButton.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -689,40 +688,112 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
 
   Future<pw.Document> _generatePDF(String appointmentId) async {
     final pdf = pw.Document();
-    final qrImage = await QrPainter(
-      data: appointmentId,
-      version: QrVersions.auto,
-      gapless: false,
-    ).toImageData(200.0);
 
     final formattedTime =
         "${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}";
 
     pdf.addPage(
       pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        margin: pw.EdgeInsets.all(32),
         build: (pw.Context context) {
           return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.center,
+            crossAxisAlignment: pw.CrossAxisAlignment.stretch,
             children: [
-              pw.Text('Appointment Confirmation',
+              // Header Section
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text(
+                    'Appointment Confirmation',
+                    style: pw.TextStyle(
+                      fontSize: 24,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
+                  pw.Text(
+                    'Date: ${DateFormat('yyyy-MM-dd').format(DateTime.now())}',
+                    style: pw.TextStyle(
+                      fontSize: 12,
+                      color: PdfColors.grey700,
+                    ),
+                  ),
+                ],
+              ),
+              pw.Divider(),
+              pw.SizedBox(height: 20),
+
+              // Appointment Details Section
+              pw.Container(
+                decoration: pw.BoxDecoration(
+                  border: pw.Border.all(color: PdfColors.grey400, width: 1),
+                  borderRadius: pw.BorderRadius.circular(8),
+                  color: PdfColors.grey100,
+                ),
+                padding: pw.EdgeInsets.all(16),
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text(
+                      'Appointment Details',
+                      style: pw.TextStyle(
+                        fontSize: 18,
+                        fontWeight: pw.FontWeight.bold,
+                        color: PdfColors.blueGrey800,
+                      ),
+                    ),
+                    pw.SizedBox(height: 10),
+                    pw.Text('Appointment ID: $appointmentId'),
+                    pw.Text('Patient Name: ${_auth.currentUser!.displayName}'),
+                    pw.Text('Doctor: ${widget.doctorName}'),
+                    pw.Text(
+                        'Date: ${DateFormat('yyyy-MM-dd').format(selectedDate)}'),
+                    pw.Text('Time: $formattedTime'),
+                    pw.Text('Speciality: ${widget.speciality}'),
+                    pw.Text('Hospital: ${widget.hospitalName}'),
+                  ],
+                ),
+              ),
+              pw.SizedBox(height: 20),
+
+              // QR Code Section
+              // Uncomment if you add the QR code logic
+              // pw.Center(
+              //   child: pw.Container(
+              //     padding: pw.EdgeInsets.all(16),
+              //     decoration: pw.BoxDecoration(
+              //       border: pw.Border.all(color: PdfColors.grey400, width: 1),
+              //       borderRadius: pw.BorderRadius.circular(8),
+              //     ),
+              //     child: pw.Image(
+              //       pw.MemoryImage(qrImage!.buffer.asUint8List()),
+              //       width: 150,
+              //       height: 150,
+              //     ),
+              //   ),
+              // ),
+              // pw.SizedBox(height: 20),
+
+              // Footer Section
+              pw.Spacer(),
+              pw.Divider(),
+              pw.Align(
+                alignment: pw.Alignment.centerRight,
+                child: pw.Text(
+                  'Thank you for choosing our services!',
                   style: pw.TextStyle(
-                      fontSize: 20, fontWeight: pw.FontWeight.bold)),
-              pw.SizedBox(height: 20),
-              pw.Text('Appointment ID: $appointmentId'),
-              pw.Text('Patient Name: ${_auth.currentUser!.displayName}'),
-              pw.Text('Doctor: ${widget.doctorName}'),
-              pw.Text('Date: ${DateFormat('yyyy-MM-dd').format(selectedDate)}'),
-              pw.Text('Time: $formattedTime'),
-              pw.Text('Speciality: ${widget.speciality}'),
-              pw.Text('Hospital: ${widget.hospitalName}'),
-              pw.SizedBox(height: 20),
-              pw.Image(pw.MemoryImage(qrImage!.buffer.asUint8List()),
-                  width: 200, height: 200),
+                    fontSize: 12,
+                    fontStyle: pw.FontStyle.italic,
+                    color: PdfColors.grey600,
+                  ),
+                ),
+              ),
             ],
           );
         },
       ),
     );
+
     return pdf;
   }
 
