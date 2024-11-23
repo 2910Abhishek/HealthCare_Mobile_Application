@@ -109,5 +109,4 @@ Contributions to the Smart Healthcare Appointment Application are welcome! If yo
 ## 📜 License
 This project is licensed under the MIT License. See the LICENSE file for details.
 
-## 🙏 Acknowledgments
-We extend our gratitude to the open-source community and the developers of the technologies we use, including Flutter, Python, Firebase, PostgreSQL, and all associated libraries and frameworks.
+
