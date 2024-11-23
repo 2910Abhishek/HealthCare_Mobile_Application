@@ -136,6 +136,7 @@
 
 
 // niche me signup
+
 import React from 'react';
 import { Route, Routes, Navigate } from 'react-router-dom';
 import Login from './components/login';
@@ -160,7 +161,7 @@ function App() {
         />
         <Route 
           path="/signup" 
-          element={!isAuthenticated ? <Signup /> : <Navigate to="/dashboard" />} 
+          element={!isAuthenticated ? <Signup /> : <Navigate to="/" />} 
         />
         <Route 
           path="/dashboard" 

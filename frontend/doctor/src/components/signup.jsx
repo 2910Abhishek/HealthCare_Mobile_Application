@@ -1015,8 +1015,8 @@ function SignUpForm() {
       const data = await response.json();
 
       if (response.ok) {
-        login(data.user.name);
-        navigate("/dashboard");
+        // login(data.user.name);
+        navigate("/");
       } else {
         if (response.status === 400 && data.error === 'Email address already registered') {
           setInputErrors(prev => ({
