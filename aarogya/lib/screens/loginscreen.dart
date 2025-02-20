@@ -189,7 +189,7 @@ class _LogInScreenState extends State<LogInScreen>
                                         await _authMethods.signInWithGoogle();
 
                                     if (res) {
-                                      Navigator.pushNamed(context, '/profile');
+                                      Navigator.pushNamed(context, '/home');
                                     }
 
                                     setState(() {

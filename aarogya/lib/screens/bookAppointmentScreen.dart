@@ -798,10 +798,12 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   }
 
   Future<bool> _sendEmail(String filePath) async {
-    final smtpServer = gmail('22cs046@charusat.edu.in', 'nril vcmk rxro zhag');
+    final smtpServer = gmail('22cs046@charusat.edu.in',
+        'nril vcmk rxro zhag'); // Replace with your credentials
     final message = Message()
-      ..from = Address('22cs046@charusat.edu.in', '22cs046')
-      ..recipients.add(_auth.currentUser!.email)
+      ..from = Address('22cs046@charusat.edu.in', 'Appointment Confirmation')
+      ..recipients
+          .add(_auth.currentUser!.email!) // Replace with the recipient email
       ..subject = 'Appointment Confirmation'
       ..text = 'Please find your appointment confirmation attached.'
       ..attachments.add(FileAttachment(File(filePath)));
